@@ -1,0 +1,3645 @@
+diff -ruN linux-5.3.6/net/mac80211/cfg.c linux-5.3.6-wireless/net/mac80211/cfg.c
+--- linux-5.3.6/net/mac80211/cfg.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/cfg.c	2023-10-15 22:29:09.808000000 +0300
+@@ -468,7 +468,7 @@
+ 		/* no MFP (yet) */
+ 		break;
+ 	case NL80211_IFTYPE_MESH_POINT:
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 		if (sdata->u.mesh.security != IEEE80211_MESH_SEC_NONE)
+ 			key->conf.flags |= IEEE80211_KEY_FLAG_RX_MGMT;
+ 		break;
+@@ -1262,15 +1262,16 @@
+ 				  struct sta_info *sta,
+ 				  struct station_parameters *params)
+ {
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 	struct ieee80211_sub_if_data *sdata = sta->sdata;
+ 	u32 changed = 0;
+ 
+ 	if (params->sta_modify_mask & STATION_PARAM_APPLY_PLINK_STATE) {
+ 		switch (params->plink_state) {
+ 		case NL80211_PLINK_ESTAB:
+-			if (sta->mesh->plink_state != NL80211_PLINK_ESTAB)
++			if (sta->mesh->plink_state != NL80211_PLINK_ESTAB) {
+ 				changed = mesh_plink_inc_estab_count(sdata);
++			}
+ 			sta->mesh->plink_state = params->plink_state;
+ 			sta->mesh->aid = params->peer_aid;
+ 
+@@ -1714,7 +1715,7 @@
+ 	return err;
+ }
+ 
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ static int ieee80211_add_mpath(struct wiphy *wiphy, struct net_device *dev,
+ 			       const u8 *dst, const u8 *next_hop)
+ {
+@@ -1855,6 +1856,7 @@
+ 				int idx, u8 *dst, u8 *next_hop,
+ 				struct mpath_info *pinfo)
+ {
++
+ 	struct ieee80211_sub_if_data *sdata;
+ 	struct mesh_path *mpath;
+ 
+@@ -2597,7 +2599,7 @@
+ 	drv_rfkill_poll(local);
+ }
+ 
+-#ifdef CONFIG_NL80211_TESTMODE
++#ifdef CPTCFG_NL80211_TESTMODE
+ static int ieee80211_testmode_cmd(struct wiphy *wiphy,
+ 				  struct wireless_dev *wdev,
+ 				  void *data, int len)
+@@ -3053,7 +3055,7 @@
+ 			return err;
+ 		*changed |= err;
+ 		break;
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 	case NL80211_IFTYPE_MESH_POINT:
+ 		err = ieee80211_mesh_finish_csa(sdata);
+ 		if (err < 0)
+@@ -3250,7 +3252,7 @@
+ 		ieee80211_send_action_csa(sdata, params);
+ 
+ 		break;
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 	case NL80211_IFTYPE_MESH_POINT: {
+ 		struct ieee80211_if_mesh *ifmsh = &sdata->u.mesh;
+ 
+@@ -3959,7 +3961,7 @@
+ 	.get_station = ieee80211_get_station,
+ 	.dump_station = ieee80211_dump_station,
+ 	.dump_survey = ieee80211_dump_survey,
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 	.add_mpath = ieee80211_add_mpath,
+ 	.del_mpath = ieee80211_del_mpath,
+ 	.change_mpath = ieee80211_change_mpath,
+diff -ruN linux-5.3.6/net/mac80211/debugfs.c linux-5.3.6-wireless/net/mac80211/debugfs.c
+--- linux-5.3.6/net/mac80211/debugfs.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/debugfs.c	2023-10-15 22:29:09.824000000 +0300
+@@ -448,7 +448,7 @@
+ 	if (!statsd)
+ 		return;
+ 
+-#ifdef CONFIG_MAC80211_DEBUG_COUNTERS
++#ifdef CPTCFG_MAC80211_DEBUG_COUNTERS
+ 	DEBUGFS_STATS_ADD(dot11TransmittedFragmentCount);
+ 	DEBUGFS_STATS_ADD(dot11MulticastTransmittedFrameCount);
+ 	DEBUGFS_STATS_ADD(dot11FailedCount);
+diff -ruN linux-5.3.6/net/mac80211/debugfs.h linux-5.3.6-wireless/net/mac80211/debugfs.h
+--- linux-5.3.6/net/mac80211/debugfs.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/debugfs.h	2023-10-15 22:29:09.824000000 +0300
+@@ -4,7 +4,7 @@
+ 
+ #include "ieee80211_i.h"
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ void debugfs_hw_add(struct ieee80211_local *local);
+ int __printf(4, 5) mac80211_format_buffer(char __user *userbuf, size_t count,
+ 					  loff_t *ppos, char *fmt, ...);
+diff -ruN linux-5.3.6/net/mac80211/debugfs_key.h linux-5.3.6-wireless/net/mac80211/debugfs_key.h
+--- linux-5.3.6/net/mac80211/debugfs_key.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/debugfs_key.h	2023-10-15 22:29:09.836000000 +0300
+@@ -2,7 +2,7 @@
+ #ifndef __MAC80211_DEBUGFS_KEY_H
+ #define __MAC80211_DEBUGFS_KEY_H
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ void ieee80211_debugfs_key_add(struct ieee80211_key *key);
+ void ieee80211_debugfs_key_remove(struct ieee80211_key *key);
+ void ieee80211_debugfs_key_update_default(struct ieee80211_sub_if_data *sdata);
+diff -ruN linux-5.3.6/net/mac80211/debugfs_netdev.c linux-5.3.6-wireless/net/mac80211/debugfs_netdev.c
+--- linux-5.3.6/net/mac80211/debugfs_netdev.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/debugfs_netdev.c	2023-10-15 22:29:09.840000000 +0300
+@@ -579,7 +579,7 @@
+ /* WDS attributes */
+ IEEE80211_IF_FILE(peer, u.wds.remote_addr, MAC);
+ 
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ IEEE80211_IF_FILE(estab_plinks, u.mesh.estab_plinks, ATOMIC);
+ 
+ /* Mesh stats attributes */
+@@ -703,7 +703,7 @@
+ 	DEBUGFS_ADD(peer);
+ }
+ 
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 
+ static void add_mesh_files(struct ieee80211_sub_if_data *sdata)
+ {
+@@ -782,7 +782,7 @@
+ 
+ 	switch (sdata->vif.type) {
+ 	case NL80211_IFTYPE_MESH_POINT:
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 		add_mesh_files(sdata);
+ 		add_mesh_stats(sdata);
+ 		add_mesh_config(sdata);
+diff -ruN linux-5.3.6/net/mac80211/debugfs_netdev.h linux-5.3.6-wireless/net/mac80211/debugfs_netdev.h
+--- linux-5.3.6/net/mac80211/debugfs_netdev.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/debugfs_netdev.h	2023-10-15 22:29:09.844000000 +0300
+@@ -6,7 +6,7 @@
+ 
+ #include "ieee80211_i.h"
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ void ieee80211_debugfs_add_netdev(struct ieee80211_sub_if_data *sdata);
+ void ieee80211_debugfs_remove_netdev(struct ieee80211_sub_if_data *sdata);
+ void ieee80211_debugfs_rename_netdev(struct ieee80211_sub_if_data *sdata);
+diff -ruN linux-5.3.6/net/mac80211/debugfs_sta.h linux-5.3.6-wireless/net/mac80211/debugfs_sta.h
+--- linux-5.3.6/net/mac80211/debugfs_sta.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/debugfs_sta.h	2023-10-15 22:29:09.848000000 +0300
+@@ -4,7 +4,7 @@
+ 
+ #include "sta_info.h"
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ void ieee80211_sta_debugfs_add(struct sta_info *sta);
+ void ieee80211_sta_debugfs_remove(struct sta_info *sta);
+ #else
+diff -ruN linux-5.3.6/net/mac80211/debug.h linux-5.3.6-wireless/net/mac80211/debug.h
+--- linux-5.3.6/net/mac80211/debug.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/debug.h	2023-10-15 22:29:09.820000000 +0300
+@@ -3,85 +3,85 @@
+ #define __MAC80211_DEBUG_H
+ #include <net/cfg80211.h>
+ 
+-#ifdef CONFIG_MAC80211_OCB_DEBUG
++#ifdef CPTCFG_MAC80211_OCB_DEBUG
+ #define MAC80211_OCB_DEBUG 1
+ #else
+ #define MAC80211_OCB_DEBUG 0
+ #endif
+ 
+-#ifdef CONFIG_MAC80211_IBSS_DEBUG
++#ifdef CPTCFG_MAC80211_IBSS_DEBUG
+ #define MAC80211_IBSS_DEBUG 1
+ #else
+ #define MAC80211_IBSS_DEBUG 0
+ #endif
+ 
+-#ifdef CONFIG_MAC80211_PS_DEBUG
++#ifdef CPTCFG_MAC80211_PS_DEBUG
+ #define MAC80211_PS_DEBUG 1
+ #else
+ #define MAC80211_PS_DEBUG 0
+ #endif
+ 
+-#ifdef CONFIG_MAC80211_HT_DEBUG
++#ifdef CPTCFG_MAC80211_HT_DEBUG
+ #define MAC80211_HT_DEBUG 1
+ #else
+ #define MAC80211_HT_DEBUG 0
+ #endif
+ 
+-#ifdef CONFIG_MAC80211_MPL_DEBUG
++#ifdef CPTCFG_MAC80211_MPL_DEBUG
+ #define MAC80211_MPL_DEBUG 1
+ #else
+ #define MAC80211_MPL_DEBUG 0
+ #endif
+ 
+-#ifdef CONFIG_MAC80211_MPATH_DEBUG
++#ifdef CPTCFG_MAC80211_MPATH_DEBUG
+ #define MAC80211_MPATH_DEBUG 1
+ #else
+ #define MAC80211_MPATH_DEBUG 0
+ #endif
+ 
+-#ifdef CONFIG_MAC80211_MHWMP_DEBUG
++#ifdef CPTCFG_MAC80211_MHWMP_DEBUG
+ #define MAC80211_MHWMP_DEBUG 1
+ #else
+ #define MAC80211_MHWMP_DEBUG 0
+ #endif
+ 
+-#ifdef CONFIG_MAC80211_MESH_SYNC_DEBUG
++#ifdef CPTCFG_MAC80211_MESH_SYNC_DEBUG
+ #define MAC80211_MESH_SYNC_DEBUG 1
+ #else
+ #define MAC80211_MESH_SYNC_DEBUG 0
+ #endif
+ 
+-#ifdef CONFIG_MAC80211_MESH_CSA_DEBUG
++#ifdef CPTCFG_MAC80211_MESH_CSA_DEBUG
+ #define MAC80211_MESH_CSA_DEBUG 1
+ #else
+ #define MAC80211_MESH_CSA_DEBUG 0
+ #endif
+ 
+-#ifdef CONFIG_MAC80211_MESH_PS_DEBUG
++#ifdef CPTCFG_MAC80211_MESH_PS_DEBUG
+ #define MAC80211_MESH_PS_DEBUG 1
+ #else
+ #define MAC80211_MESH_PS_DEBUG 0
+ #endif
+ 
+-#ifdef CONFIG_MAC80211_TDLS_DEBUG
++#ifdef CPTCFG_MAC80211_TDLS_DEBUG
+ #define MAC80211_TDLS_DEBUG 1
+ #else
+ #define MAC80211_TDLS_DEBUG 0
+ #endif
+ 
+-#ifdef CONFIG_MAC80211_STA_DEBUG
++#ifdef CPTCFG_MAC80211_STA_DEBUG
+ #define MAC80211_STA_DEBUG 1
+ #else
+ #define MAC80211_STA_DEBUG 0
+ #endif
+ 
+-#ifdef CONFIG_MAC80211_MLME_DEBUG
++#ifdef CPTCFG_MAC80211_MLME_DEBUG
+ #define MAC80211_MLME_DEBUG 1
+ #else
+ #define MAC80211_MLME_DEBUG 0
+ #endif
+ 
+-#ifdef CONFIG_MAC80211_MESSAGE_TRACING
++#ifdef CPTCFG_MAC80211_MESSAGE_TRACING
+ void __sdata_info(const char *fmt, ...) __printf(1, 2);
+ void __sdata_dbg(bool print, const char *fmt, ...) __printf(2, 3);
+ void __sdata_err(const char *fmt, ...) __printf(1, 2);
+diff -ruN linux-5.3.6/net/mac80211/driver-ops.h linux-5.3.6-wireless/net/mac80211/driver-ops.h
+--- linux-5.3.6/net/mac80211/driver-ops.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/driver-ops.h	2023-10-15 22:29:09.856000000 +0300
+@@ -487,7 +487,7 @@
+ 	trace_drv_return_void(local);
+ }
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ static inline void drv_sta_add_debugfs(struct ieee80211_local *local,
+ 				       struct ieee80211_sub_if_data *sdata,
+ 				       struct ieee80211_sta *sta,
+diff -ruN linux-5.3.6/net/mac80211/fils_aead.c linux-5.3.6-wireless/net/mac80211/fils_aead.c
+--- linux-5.3.6/net/mac80211/fils_aead.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/fils_aead.c	2023-10-15 22:29:09.876000000 +0300
+@@ -1,3 +1,4 @@
++#if LINUX_VERSION_IS_GEQ(4,3,0)
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+  * FILS AEAD for (Re)Association Request/Response frames
+@@ -329,3 +330,4 @@
+ 	*frame_len -= AES_BLOCK_SIZE;
+ 	return 0;
+ }
++#endif
+diff -ruN linux-5.3.6/net/mac80211/fils_aead.h linux-5.3.6-wireless/net/mac80211/fils_aead.h
+--- linux-5.3.6/net/mac80211/fils_aead.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/fils_aead.h	2023-10-15 22:29:09.896000000 +0300
+@@ -7,10 +7,27 @@
+ #ifndef FILS_AEAD_H
+ #define FILS_AEAD_H
+ 
++#if LINUX_VERSION_IS_GEQ(4,3,0)
+ int fils_encrypt_assoc_req(struct sk_buff *skb,
+ 			   struct ieee80211_mgd_assoc_data *assoc_data);
+ int fils_decrypt_assoc_resp(struct ieee80211_sub_if_data *sdata,
+ 			    u8 *frame, size_t *frame_len,
+ 			    struct ieee80211_mgd_assoc_data *assoc_data);
++#else
++static inline
++int fils_encrypt_assoc_req(struct sk_buff *skb,
++			   struct ieee80211_mgd_assoc_data *assoc_data)
++{
++	return -EOPNOTSUPP;
++}
++
++static inline
++int fils_decrypt_assoc_resp(struct ieee80211_sub_if_data *sdata,
++			    u8 *frame, size_t *frame_len,
++			    struct ieee80211_mgd_assoc_data *assoc_data)
++{
++	return -EOPNOTSUPP;
++}
++#endif
+ 
+ #endif /* FILS_AEAD_H */
+diff -ruN linux-5.3.6/net/mac80211/ieee80211_i.h linux-5.3.6-wireless/net/mac80211/ieee80211_i.h
+--- linux-5.3.6/net/mac80211/ieee80211_i.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/ieee80211_i.h	2023-10-15 22:29:09.948000000 +0300
+@@ -723,7 +723,7 @@
+ 	int mpp_paths_generation;
+ };
+ 
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ #define IEEE80211_IFSTA_MESH_CTR_INC(msh, name)	\
+ 	do { (msh)->mshstats.name++; } while (0)
+ #else
+@@ -975,7 +975,7 @@
+ 		struct ieee80211_if_nan nan;
+ 	} u;
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	struct {
+ 		struct dentry *subdir_stations;
+ 		struct dentry *default_unicast_key;
+@@ -1065,7 +1065,7 @@
+ 	IEEE80211_QUEUE_STOP_REASONS,
+ };
+ 
+-#ifdef CONFIG_MAC80211_LEDS
++#ifdef CPTCFG_MAC80211_LEDS
+ struct tpt_led_trigger {
+ 	char name[32];
+ 	const struct ieee80211_tpt_blink *blink_table;
+@@ -1305,7 +1305,8 @@
+ 	struct list_head chanctx_list;
+ 	struct mutex chanctx_mtx;
+ 
+-#ifdef CONFIG_MAC80211_LEDS
++#ifdef CPTCFG_MAC80211_LEDS
++	int tx_led_counter, rx_led_counter;
+ 	struct led_trigger tx_led, rx_led, assoc_led, radio_led;
+ 	struct led_trigger tpt_led;
+ 	atomic_t tx_led_active, rx_led_active, assoc_led_active;
+@@ -1313,7 +1314,7 @@
+ 	struct tpt_led_trigger *tpt_led_trigger;
+ #endif
+ 
+-#ifdef CONFIG_MAC80211_DEBUG_COUNTERS
++#ifdef CPTCFG_MAC80211_DEBUG_COUNTERS
+ 	/* SNMP counters */
+ 	/* dot11CountersTable */
+ 	u32 dot11TransmittedFragmentCount;
+@@ -1342,9 +1343,9 @@
+ 	unsigned int rx_handlers_fragments;
+ 	unsigned int tx_status_drop;
+ #define I802_DEBUG_INC(c) (c)++
+-#else /* CONFIG_MAC80211_DEBUG_COUNTERS */
++#else /* CPTCFG_MAC80211_DEBUG_COUNTERS */
+ #define I802_DEBUG_INC(c) do { } while (0)
+-#endif /* CONFIG_MAC80211_DEBUG_COUNTERS */
++#endif /* CPTCFG_MAC80211_DEBUG_COUNTERS */
+ 
+ 
+ 	int total_ps_buffered; /* total number of all buffered unicast and
+@@ -1376,7 +1377,7 @@
+ 
+ 	struct work_struct restart_work;
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	struct local_debugfsdentries {
+ 		struct dentry *rcdir;
+ 		struct dentry *keys;
+@@ -2235,7 +2236,7 @@
+ 
+ extern const struct ethtool_ops ieee80211_ethtool_ops;
+ 
+-#ifdef CONFIG_MAC80211_NOINLINE
++#ifdef CPTCFG_MAC80211_NOINLINE
+ #define debug_noinline noinline
+ #else
+ #define debug_noinline
+diff -ruN linux-5.3.6/net/mac80211/iface.c linux-5.3.6-wireless/net/mac80211/iface.c
+--- linux-5.3.6/net/mac80211/iface.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/iface.c	2023-10-15 22:29:09.956000000 +0300
+@@ -619,7 +619,8 @@
+ 		mutex_unlock(&local->mtx);
+ 
+ 		netif_carrier_on(dev);
+-		break;
++		break;		
++
+ 	default:
+ 		if (coming_up) {
+ 			ieee80211_del_virtual_monitor(local);
+@@ -1128,9 +1129,29 @@
+ 	ieee80211_teardown_sdata(IEEE80211_DEV_TO_SUB_IF(dev));
+ }
+ 
++#if LINUX_VERSION_IS_GEQ(5,2,0)
+ static u16 ieee80211_netdev_select_queue(struct net_device *dev,
+ 					 struct sk_buff *skb,
+ 					 struct net_device *sb_dev)
++#elif LINUX_VERSION_IS_GEQ(4,19,0)
++static u16 ieee80211_netdev_select_queue(struct net_device *dev,
++					 struct sk_buff *skb,
++					 struct net_device *sb_dev,
++					 select_queue_fallback_t fallback)
++#elif LINUX_VERSION_IS_GEQ(3,14,0) || \
++    (LINUX_VERSION_CODE == KERNEL_VERSION(3,13,11) && UTS_UBUNTU_RELEASE_ABI > 30)
++static u16 ieee80211_netdev_select_queue(struct net_device *dev,
++					 struct sk_buff *skb,
++					 void *accel_priv,
++					 select_queue_fallback_t fallback)
++#elif LINUX_VERSION_IS_GEQ(3,13,0)
++static u16 ieee80211_netdev_select_queue(struct net_device *dev,
++					 struct sk_buff *skb,
++					 void *accel_priv)
++#else
++static u16 ieee80211_netdev_select_queue(struct net_device *dev,
++					 struct sk_buff *skb)
++#endif
+ {
+ 	return ieee80211_select_queue(IEEE80211_DEV_TO_SUB_IF(dev), skb);
+ }
+@@ -1145,7 +1166,7 @@
+ 		u64 rx_packets, rx_bytes, tx_packets, tx_bytes;
+ 		unsigned int start;
+ 
+-		tstats = per_cpu_ptr(dev->tstats, i);
++		tstats = per_cpu_ptr(netdev_tstats(dev), i);
+ 
+ 		do {
+ 			start = u64_stats_fetch_begin_irq(&tstats->syncp);
+@@ -1161,8 +1182,32 @@
+ 		stats->tx_bytes   += tx_bytes;
+ 	}
+ }
++#if LINUX_VERSION_IS_LESS(4,11,0)
++/* Just declare it here to keep sparse happy */
++struct rtnl_link_stats64 *bp_ieee80211_get_stats64(struct net_device *dev,
++						   struct rtnl_link_stats64 *stats);
++struct rtnl_link_stats64 *
++bp_ieee80211_get_stats64(struct net_device *dev,
++			 struct rtnl_link_stats64 *stats){
++	ieee80211_get_stats64(dev, stats);
++	return stats;
++}
++#endif
++
++#if LINUX_VERSION_IS_LESS(4,10,0)
++static int __change_mtu(struct net_device *ndev, int new_mtu){
++	if (new_mtu < 256 || new_mtu > IEEE80211_MAX_DATA_LEN)
++		return -EINVAL;
++	ndev->mtu = new_mtu;
++	return 0;
++}
++#endif
+ 
+ static const struct net_device_ops ieee80211_dataif_ops = {
++#if LINUX_VERSION_IS_LESS(4,10,0)
++	.ndo_change_mtu = __change_mtu,
++#endif
++
+ 	.ndo_open		= ieee80211_open,
+ 	.ndo_stop		= ieee80211_stop,
+ 	.ndo_uninit		= ieee80211_uninit,
+@@ -1170,12 +1215,37 @@
+ 	.ndo_set_rx_mode	= ieee80211_set_multicast_list,
+ 	.ndo_set_mac_address 	= ieee80211_change_mac,
+ 	.ndo_select_queue	= ieee80211_netdev_select_queue,
++#if LINUX_VERSION_IS_GEQ(4,11,0)
+ 	.ndo_get_stats64	= ieee80211_get_stats64,
++#else
++	.ndo_get_stats64 = bp_ieee80211_get_stats64,
++#endif
++
+ };
+ 
++#if LINUX_VERSION_IS_GEQ(5,2,0)
+ static u16 ieee80211_monitor_select_queue(struct net_device *dev,
+ 					  struct sk_buff *skb,
+ 					  struct net_device *sb_dev)
++#elif LINUX_VERSION_IS_GEQ(4,19,0)
++static u16 ieee80211_monitor_select_queue(struct net_device *dev,
++					  struct sk_buff *skb,
++					  struct net_device *sb_dev,
++					  select_queue_fallback_t fallback)
++#elif LINUX_VERSION_IS_GEQ(3,14,0) || \
++    (LINUX_VERSION_CODE == KERNEL_VERSION(3,13,11) && UTS_UBUNTU_RELEASE_ABI > 30)
++static u16 ieee80211_monitor_select_queue(struct net_device *dev,
++					  struct sk_buff *skb,
++					  void *accel_priv,
++					  select_queue_fallback_t fallback)
++#elif LINUX_VERSION_IS_GEQ(3,13,0)
++static u16 ieee80211_monitor_select_queue(struct net_device *dev,
++					  struct sk_buff *skb,
++					  void *accel_priv)
++#else
++static u16 ieee80211_monitor_select_queue(struct net_device *dev,
++					  struct sk_buff *skb)
++#endif
+ {
+ 	struct ieee80211_sub_if_data *sdata = IEEE80211_DEV_TO_SUB_IF(dev);
+ 	struct ieee80211_local *local = sdata->local;
+@@ -1195,6 +1265,10 @@
+ }
+ 
+ static const struct net_device_ops ieee80211_monitorif_ops = {
++#if LINUX_VERSION_IS_LESS(4,10,0)
++	.ndo_change_mtu = __change_mtu,
++#endif
++
+ 	.ndo_open		= ieee80211_open,
+ 	.ndo_stop		= ieee80211_stop,
+ 	.ndo_uninit		= ieee80211_uninit,
+@@ -1202,27 +1276,42 @@
+ 	.ndo_set_rx_mode	= ieee80211_set_multicast_list,
+ 	.ndo_set_mac_address 	= ieee80211_change_mac,
+ 	.ndo_select_queue	= ieee80211_monitor_select_queue,
++#if LINUX_VERSION_IS_GEQ(4,11,0)
+ 	.ndo_get_stats64	= ieee80211_get_stats64,
++#else
++	.ndo_get_stats64 = bp_ieee80211_get_stats64,
++#endif
++
+ };
+ 
+ static void ieee80211_if_free(struct net_device *dev)
+ {
+-	free_percpu(dev->tstats);
++	free_percpu(netdev_tstats(dev));
+ }
+ 
++#if LINUX_VERSION_IS_LESS(4,12,0)
++static void __ieee80211_if_free(struct net_device *ndev){
++	ieee80211_if_free(ndev);
++	free_netdev(ndev);
++}
++#endif
++
+ static void ieee80211_if_setup(struct net_device *dev)
+ {
+ 	ether_setup(dev);
+ 	dev->priv_flags &= ~IFF_TX_SKB_SHARING;
+ 	dev->netdev_ops = &ieee80211_dataif_ops;
+-	dev->needs_free_netdev = true;
+-	dev->priv_destructor = ieee80211_if_free;
++	netdev_set_priv_destructor(dev, ieee80211_if_free);
+ }
+ 
+ static void ieee80211_if_setup_no_queue(struct net_device *dev)
+ {
+ 	ieee80211_if_setup(dev);
++#if LINUX_VERSION_IS_GEQ(4,3,0)
+ 	dev->priv_flags |= IFF_NO_QUEUE;
++#else
++	dev->tx_queue_len = 0;
++#endif
+ }
+ 
+ static void ieee80211_iface_work(struct work_struct *work)
+@@ -1774,8 +1863,9 @@
+ 			return -ENOMEM;
+ 		dev_net_set(ndev, wiphy_net(local->hw.wiphy));
+ 
+-		ndev->tstats = netdev_alloc_pcpu_stats(struct pcpu_sw_netstats);
+-		if (!ndev->tstats) {
++		netdev_assign_tstats(ndev,
++				     netdev_alloc_pcpu_stats(struct pcpu_sw_netstats));
++		if (!netdev_tstats(ndev)) {
+ 			free_netdev(ndev);
+ 			return -ENOMEM;
+ 		}
+@@ -1875,11 +1965,18 @@
+ 		netdev_set_default_ethtool_ops(ndev, &ieee80211_ethtool_ops);
+ 
+ 		/* MTU range: 256 - 2304 */
++#if LINUX_VERSION_IS_GEQ(4,10,0)
+ 		ndev->min_mtu = 256;
++#endif
++#if LINUX_VERSION_IS_GEQ(4,10,0)
+ 		ndev->max_mtu = IEEE80211_MAX_DATA_LEN;
++#endif
+ 
+ 		ret = register_netdevice(ndev);
+ 		if (ret) {
++#if LINUX_VERSION_IS_LESS(4,12,0)
++			ieee80211_if_free(ndev);
++#endif
+ 			free_netdev(ndev);
+ 			return ret;
+ 		}
+diff -ruN linux-5.3.6/net/mac80211/Kconfig linux-5.3.6-wireless/net/mac80211/Kconfig
+--- linux-5.3.6/net/mac80211/Kconfig	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/Kconfig	2023-10-15 22:29:09.768000000 +0300
+@@ -1,14 +1,15 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ config MAC80211
+ 	tristate "Generic IEEE 802.11 Networking Stack (mac80211)"
++	depends on m
+ 	depends on CFG80211
+-	select CRYPTO
+-	select CRYPTO_LIB_ARC4
+-	select CRYPTO_AES
+-	select CRYPTO_CCM
+-	select CRYPTO_GCM
+-	select CRYPTO_CMAC
+-	select CRC32
++	depends on CRYPTO
++	select BPAUTO_CRYPTO_LIB_ARC4
++	depends on CRYPTO_AES
++	depends on CRYPTO_CCM
++	depends on CRYPTO_GCM
++	depends on CRYPTO_CMAC
++	depends on CRC32
+ 	---help---
+ 	  This option enables the hardware independent IEEE 802.11
+ 	  networking stack.
+@@ -70,7 +71,7 @@
+ 	bool "Enable LED triggers"
+ 	depends on MAC80211
+ 	depends on LEDS_CLASS
+-	select LEDS_TRIGGERS
++	select BPAUTO_LEDS_TRIGGERS
+ 	---help---
+ 	  This option enables a few LED triggers for different
+ 	  packet receive/transmit events.
+diff -ruN linux-5.3.6/net/mac80211/key.h linux-5.3.6-wireless/net/mac80211/key.h
+--- linux-5.3.6/net/mac80211/key.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/key.h	2023-10-15 22:29:09.984000000 +0300
+@@ -118,7 +118,7 @@
+ 		} gen;
+ 	} u;
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	struct {
+ 		struct dentry *stalink;
+ 		struct dentry *dir;
+diff -ruN linux-5.3.6/net/mac80211/led.c linux-5.3.6-wireless/net/mac80211/led.c
+--- linux-5.3.6/net/mac80211/led.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/led.c	2023-10-15 22:29:10.000000000 +0300
+@@ -59,6 +59,11 @@
+ 
+ 	return 0;
+ }
++#if LINUX_VERSION_IS_LESS(4,19,0)
++static void bp_ieee80211_tx_led_activate(struct led_classdev *led_cdev){
++	ieee80211_tx_led_activate(led_cdev);
++}
++#endif
+ 
+ static void ieee80211_tx_led_deactivate(struct led_classdev *led_cdev)
+ {
+@@ -79,6 +84,11 @@
+ 
+ 	return 0;
+ }
++#if LINUX_VERSION_IS_LESS(4,19,0)
++static void bp_ieee80211_rx_led_activate(struct led_classdev *led_cdev){
++	ieee80211_rx_led_activate(led_cdev);
++}
++#endif
+ 
+ static void ieee80211_rx_led_deactivate(struct led_classdev *led_cdev)
+ {
+@@ -99,6 +109,11 @@
+ 
+ 	return 0;
+ }
++#if LINUX_VERSION_IS_LESS(4,19,0)
++static void bp_ieee80211_assoc_led_activate(struct led_classdev *led_cdev){
++	ieee80211_assoc_led_activate(led_cdev);
++}
++#endif
+ 
+ static void ieee80211_assoc_led_deactivate(struct led_classdev *led_cdev)
+ {
+@@ -119,6 +134,11 @@
+ 
+ 	return 0;
+ }
++#if LINUX_VERSION_IS_LESS(4,19,0)
++static void bp_ieee80211_radio_led_activate(struct led_classdev *led_cdev){
++	ieee80211_radio_led_activate(led_cdev);
++}
++#endif
+ 
+ static void ieee80211_radio_led_deactivate(struct led_classdev *led_cdev)
+ {
+@@ -139,6 +159,11 @@
+ 
+ 	return 0;
+ }
++#if LINUX_VERSION_IS_LESS(4,19,0)
++static void bp_ieee80211_tpt_led_activate(struct led_classdev *led_cdev){
++	ieee80211_tpt_led_activate(led_cdev);
++}
++#endif
+ 
+ static void ieee80211_tpt_led_deactivate(struct led_classdev *led_cdev)
+ {
+@@ -152,7 +177,11 @@
+ void ieee80211_led_init(struct ieee80211_local *local)
+ {
+ 	atomic_set(&local->rx_led_active, 0);
++#if LINUX_VERSION_IS_GEQ(4,19,0)
+ 	local->rx_led.activate = ieee80211_rx_led_activate;
++#else
++	local->rx_led.activate = bp_ieee80211_rx_led_activate;
++#endif
+ 	local->rx_led.deactivate = ieee80211_rx_led_deactivate;
+ 	if (local->rx_led.name && led_trigger_register(&local->rx_led)) {
+ 		kfree(local->rx_led.name);
+@@ -160,7 +189,11 @@
+ 	}
+ 
+ 	atomic_set(&local->tx_led_active, 0);
++#if LINUX_VERSION_IS_GEQ(4,19,0)
+ 	local->tx_led.activate = ieee80211_tx_led_activate;
++#else
++	local->tx_led.activate = bp_ieee80211_tx_led_activate;
++#endif
+ 	local->tx_led.deactivate = ieee80211_tx_led_deactivate;
+ 	if (local->tx_led.name && led_trigger_register(&local->tx_led)) {
+ 		kfree(local->tx_led.name);
+@@ -168,7 +201,11 @@
+ 	}
+ 
+ 	atomic_set(&local->assoc_led_active, 0);
++#if LINUX_VERSION_IS_GEQ(4,19,0)
+ 	local->assoc_led.activate = ieee80211_assoc_led_activate;
++#else
++	local->assoc_led.activate = bp_ieee80211_assoc_led_activate;
++#endif
+ 	local->assoc_led.deactivate = ieee80211_assoc_led_deactivate;
+ 	if (local->assoc_led.name && led_trigger_register(&local->assoc_led)) {
+ 		kfree(local->assoc_led.name);
+@@ -176,7 +213,11 @@
+ 	}
+ 
+ 	atomic_set(&local->radio_led_active, 0);
++#if LINUX_VERSION_IS_GEQ(4,19,0)
+ 	local->radio_led.activate = ieee80211_radio_led_activate;
++#else
++	local->radio_led.activate = bp_ieee80211_radio_led_activate;
++#endif
+ 	local->radio_led.deactivate = ieee80211_radio_led_deactivate;
+ 	if (local->radio_led.name && led_trigger_register(&local->radio_led)) {
+ 		kfree(local->radio_led.name);
+@@ -185,7 +226,11 @@
+ 
+ 	atomic_set(&local->tpt_led_active, 0);
+ 	if (local->tpt_led_trigger) {
++#if LINUX_VERSION_IS_GEQ(4,19,0)
+ 		local->tpt_led.activate = ieee80211_tpt_led_activate;
++#else
++		local->tpt_led.activate = bp_ieee80211_tpt_led_activate;
++#endif
+ 		local->tpt_led.deactivate = ieee80211_tpt_led_deactivate;
+ 		if (led_trigger_register(&local->tpt_led)) {
+ 			kfree(local->tpt_led_trigger);
+diff -ruN linux-5.3.6/net/mac80211/led.h linux-5.3.6-wireless/net/mac80211/led.h
+--- linux-5.3.6/net/mac80211/led.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/led.h	2023-10-15 22:29:10.012000000 +0300
+@@ -12,27 +12,41 @@
+ 
+ static inline void ieee80211_led_rx(struct ieee80211_local *local)
+ {
+-#ifdef CONFIG_MAC80211_LEDS
+-	unsigned long led_delay = MAC80211_BLINK_DELAY;
++#ifdef CPTCFG_MAC80211_LEDS
++	unsigned long led_delay __maybe_unused = MAC80211_BLINK_DELAY;
+ 
+ 	if (!atomic_read(&local->rx_led_active))
+ 		return;
++#if LINUX_VERSION_IS_GEQ(3,6,0)
+ 	led_trigger_blink_oneshot(&local->rx_led, &led_delay, &led_delay, 0);
++#else
++	if (local->rx_led_counter++ % 2 == 0)
++		led_trigger_event(&local->rx_led, LED_OFF);
++	else
++		led_trigger_event(&local->rx_led, LED_FULL);
++#endif
+ #endif
+ }
+ 
+ static inline void ieee80211_led_tx(struct ieee80211_local *local)
+ {
+-#ifdef CONFIG_MAC80211_LEDS
+-	unsigned long led_delay = MAC80211_BLINK_DELAY;
++#ifdef CPTCFG_MAC80211_LEDS
++	unsigned long led_delay __maybe_unused = MAC80211_BLINK_DELAY;
+ 
+ 	if (!atomic_read(&local->tx_led_active))
+ 		return;
++#if LINUX_VERSION_IS_GEQ(3,6,0)
+ 	led_trigger_blink_oneshot(&local->tx_led, &led_delay, &led_delay, 0);
++#else
++	if (local->tx_led_counter++ % 2 == 0)
++		led_trigger_event(&local->tx_led, LED_OFF);
++	else
++		led_trigger_event(&local->tx_led, LED_FULL);
++#endif
+ #endif
+ }
+ 
+-#ifdef CONFIG_MAC80211_LEDS
++#ifdef CPTCFG_MAC80211_LEDS
+ void ieee80211_led_assoc(struct ieee80211_local *local,
+ 			 bool associated);
+ void ieee80211_led_radio(struct ieee80211_local *local,
+@@ -74,7 +88,7 @@
+ static inline void
+ ieee80211_tpt_led_trig_tx(struct ieee80211_local *local, __le16 fc, int bytes)
+ {
+-#ifdef CONFIG_MAC80211_LEDS
++#ifdef CPTCFG_MAC80211_LEDS
+ 	if (ieee80211_is_data(fc) && atomic_read(&local->tpt_led_active))
+ 		local->tpt_led_trigger->tx_bytes += bytes;
+ #endif
+@@ -83,7 +97,7 @@
+ static inline void
+ ieee80211_tpt_led_trig_rx(struct ieee80211_local *local, __le16 fc, int bytes)
+ {
+-#ifdef CONFIG_MAC80211_LEDS
++#ifdef CPTCFG_MAC80211_LEDS
+ 	if (ieee80211_is_data(fc) && atomic_read(&local->tpt_led_active))
+ 		local->tpt_led_trigger->rx_bytes += bytes;
+ #endif
+diff -ruN linux-5.3.6/net/mac80211/main.c linux-5.3.6-wireless/net/mac80211/main.c
+--- linux-5.3.6/net/mac80211/main.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/main.c	2023-10-15 22:29:10.016000000 +0300
+@@ -571,7 +571,9 @@
+ 			   NL80211_FEATURE_MAC_ON_CREATE |
+ 			   NL80211_FEATURE_USERSPACE_MPM |
+ 			   NL80211_FEATURE_FULL_AP_CLIENT_STATE;
++#if LINUX_VERSION_IS_GEQ(4,3,0)
+ 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_FILS_STA);
++#endif
+ 	wiphy_ext_feature_set(wiphy,
+ 			      NL80211_EXT_FEATURE_CONTROL_PORT_OVER_NL80211);
+ 
+@@ -1025,7 +1027,7 @@
+ 		local->int_scan_req->rates[band] = (u32) -1;
+ 	}
+ 
+-#ifndef CONFIG_MAC80211_MESH
++#ifndef CPTCFG_MAC80211_MESH
+ 	/* mesh depends on Kconfig, but drivers should set it if they want */
+ 	local->hw.wiphy->interface_modes &= ~BIT(NL80211_IFTYPE_MESH_POINT);
+ #endif
+diff -ruN linux-5.3.6/net/mac80211/Makefile linux-5.3.6-wireless/net/mac80211/Makefile
+--- linux-5.3.6/net/mac80211/Makefile	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/Makefile	2023-10-15 22:29:09.772000000 +0300
+@@ -1,5 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
+-obj-$(CONFIG_MAC80211) += mac80211.o
++obj-$(CPTCFG_MAC80211) += mac80211.o
+ 
+ # mac80211 objects
+ mac80211-y := \
+@@ -34,14 +34,14 @@
+ 	tdls.o \
+ 	ocb.o
+ 
+-mac80211-$(CONFIG_MAC80211_LEDS) += led.o
+-mac80211-$(CONFIG_MAC80211_DEBUGFS) += \
++mac80211-$(CPTCFG_MAC80211_LEDS) += led.o
++mac80211-$(CPTCFG_MAC80211_DEBUGFS) += \
+ 	debugfs.o \
+ 	debugfs_sta.o \
+ 	debugfs_netdev.o \
+ 	debugfs_key.o
+ 
+-mac80211-$(CONFIG_MAC80211_MESH) += \
++mac80211-$(CPTCFG_MAC80211_MESH) += \
+ 	mesh.o \
+ 	mesh_pathtbl.o \
+ 	mesh_plink.o \
+@@ -57,10 +57,10 @@
+ 	rc80211_minstrel.o \
+ 	rc80211_minstrel_ht.o
+ 
+-rc80211_minstrel-$(CONFIG_MAC80211_DEBUGFS) += \
++rc80211_minstrel-$(CPTCFG_MAC80211_DEBUGFS) += \
+ 	rc80211_minstrel_debugfs.o \
+ 	rc80211_minstrel_ht_debugfs.o
+ 
+-mac80211-$(CONFIG_MAC80211_RC_MINSTREL) += $(rc80211_minstrel-y)
++mac80211-$(CPTCFG_MAC80211_RC_MINSTREL) += $(rc80211_minstrel-y)
+ 
+ ccflags-y += -DDEBUG
+diff -ruN linux-5.3.6/net/mac80211/mesh.c linux-5.3.6-wireless/net/mac80211/mesh.c
+--- linux-5.3.6/net/mac80211/mesh.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/mesh.c	2023-10-15 22:29:10.024000000 +0300
+@@ -15,6 +15,65 @@
+ static int mesh_allocated;
+ static struct kmem_cache *rm_cache;
+ 
++//Ntemkas func
++void print_addr(const u8 *addr, const char *str) {
++    char addr_str[ETH_ALEN * 3 + strlen(str) + 3];  // Maximum address string length: "XX:XX:...:XX\0"
++    int i, len = 0;
++    bool pair_found = false;
++
++    len += snprintf(addr_str + len, sizeof(addr_str) - len, "%s ~ ", str);
++
++    for (i = 0; i < ETH_ALEN; i++) {
++        len += snprintf(addr_str + len, sizeof(addr_str) - len, "%02x", addr[i]);
++
++        if (i < ETH_ALEN - 1) {
++            len += snprintf(addr_str + len, sizeof(addr_str) - len, ":");
++        }
++
++	// comment the return to see the MAC addresses having "00" in them
++	if (i>0 && addr[i] == 0 && addr[i - 1] == 0) {
++	   pair_found = true;
++	   break;
++	}
++    }
++
++    printk("%s\n", addr_str);
++
++    if (pair_found) {
++	printk("Pair of 00 found\n");
++    }
++}
++
++void u8_to_string(const u8 *addr, char *temp) {
++    int i, len = 0;
++
++    for (i = 0; i < ETH_ALEN; i++) {
++        len += snprintf(temp + len, ETH_ALEN * 3 + 1 - len, "%02x", addr[i]);
++
++        if (i < ETH_ALEN - 1) {
++            len += snprintf(temp + len, ETH_ALEN * 3 + 1 - len, ":");
++        }
++    }
++}
++
++void string_to_u8(const char *temp, u8 *addr) {
++	char byte_str[3];
++        unsigned long byte_val;
++	int i;
++
++        for (i = 0; i < ETH_ALEN; i++) {
++            memcpy(byte_str, temp, 2);
++            byte_str[2] = '\0';
++
++            kstrtoul(byte_str, 16, &byte_val);
++            addr[i] = (u8)byte_val;
++
++            if (i < ETH_ALEN - 1) {
++                temp += 3; // Move to the next byte in the string
++            }
++        }
++}
++
+ bool mesh_action_is_path_sel(struct ieee80211_mgmt *mgmt)
+ {
+ 	return (mgmt->u.action.u.mesh_action.action_code ==
+@@ -41,6 +100,15 @@
+ 		from_timer(sdata, t, u.mesh.housekeeping_timer);
+ 	struct ieee80211_local *local = sdata->local;
+ 	struct ieee80211_if_mesh *ifmsh = &sdata->u.mesh;
++	
++	int i=0;
++	for (;;) {
++		struct mesh_path *path = mesh_path_lookup_by_idx(sdata,i);
++		if (path == NULL)
++			break;
++		print_addr(path->dst, "path->dst");
++		i++;
++	}
+ 
+ 	set_bit(MESH_WORK_HOUSEKEEPING, &ifmsh->wrkq_flags);
+ 
+@@ -288,6 +356,8 @@
+ 	/* Mesh PS mode. See IEEE802.11-2012 8.4.2.100.8 */
+ 	*pos |= ifmsh->ps_peers_deep_sleep ?
+ 			IEEE80211_MESHCONF_CAPAB_POWER_SAVE_LEVEL : 0x00;
++	//print_addr(pos, "mesh_add_meshconf_ie ~ pos: ");
++
+ 	return 0;
+ }
+ 
+@@ -575,12 +645,14 @@
+ int ieee80211_fill_mesh_addresses(struct ieee80211_hdr *hdr, __le16 *fc,
+ 				  const u8 *meshda, const u8 *meshsa)
+ {
++
+ 	if (is_multicast_ether_addr(meshda)) {
+ 		*fc |= cpu_to_le16(IEEE80211_FCTL_FROMDS);
+ 		/* DA TA SA */
+ 		memcpy(hdr->addr1, meshda, ETH_ALEN);
+ 		memcpy(hdr->addr2, meshsa, ETH_ALEN);
+ 		memcpy(hdr->addr3, meshsa, ETH_ALEN);
++
+ 		return 24;
+ 	} else {
+ 		*fc |= cpu_to_le16(IEEE80211_FCTL_FROMDS | IEEE80211_FCTL_TODS);
+@@ -589,6 +661,7 @@
+ 		memcpy(hdr->addr2, meshsa, ETH_ALEN);
+ 		memcpy(hdr->addr3, meshda, ETH_ALEN);
+ 		memcpy(hdr->addr4, meshsa, ETH_ALEN);
++
+ 		return 30;
+ 	}
+ }
+@@ -630,7 +703,6 @@
+ 		memcpy(meshhdr->eaddr2, addr6, ETH_ALEN);
+ 		return 3 * ETH_ALEN;
+ 	}
+-
+ 	return ETH_ALEN;
+ }
+ 
+@@ -1159,6 +1231,9 @@
+ 	int freq;
+ 	enum nl80211_band band = rx_status->band;
+ 
++	if (ether_addr_equal(mgmt->da, sdata->vif.addr))
++	    print_addr(mgmt->sa, "ieee80211_mesh_rx_bcn_peresp ~ source MAC: ");
++
+ 	/* ignore ProbeResp to foreign address */
+ 	if (stype == IEEE80211_STYPE_PROBE_RESP &&
+ 	    !ether_addr_equal(mgmt->da, sdata->vif.addr))
+diff -ruN linux-5.3.6/net/mac80211/mesh.h linux-5.3.6-wireless/net/mac80211/mesh.h
+--- linux-5.3.6/net/mac80211/mesh.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/mesh.h	2023-10-15 22:29:10.028000000 +0300
+@@ -12,6 +12,18 @@
+ #include <linux/jhash.h>
+ #include "ieee80211_i.h"
+ 
++// our globals
++extern int neighbors;
++
++void print_addr(const u8 *addr, const char *str);
++void u8_to_string(const u8 *addr, char *temp);
++void string_to_u8(const char *temp, u8 *addr);
++/* CUSTOM MESH TABLE */
++extern const char custom_names[][2][20];
++extern const char valid_macs[][2][20];
++
++void print_custom_mesh_array(void);
++char* find_mac_by_name(const char custom_names[][2][20], const char *target_name);
+ 
+ /* Data structures */
+ 
+@@ -313,7 +325,7 @@
+ 
+ bool mesh_action_is_path_sel(struct ieee80211_mgmt *mgmt);
+ 
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ static inline
+ u32 mesh_plink_inc_estab_count(struct ieee80211_sub_if_data *sdata)
+ {
+diff -ruN linux-5.3.6/net/mac80211/mesh_hwmp.c linux-5.3.6-wireless/net/mac80211/mesh_hwmp.c
+--- linux-5.3.6/net/mac80211/mesh_hwmp.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/mesh_hwmp.c	2023-10-15 22:29:10.036000000 +0300
+@@ -388,6 +388,10 @@
+ 	u32 last_hop_metric, new_metric;
+ 	bool process = true;
+ 	u8 hopcount;
++	u32 lowest_metric = MAX_METRIC;
++	struct ieee80211_sub_if_data *best_sdata;
++	bool have_sn, newer_sn, bounced;
++	u32 temp_metric;
+ 
+ 	rcu_read_lock();
+ 	sta = sta_info_get(sdata, mgmt->sa);
+@@ -424,6 +428,7 @@
+ 		rcu_read_unlock();
+ 		return 0;
+ 	}
++
+ 	new_metric = orig_metric + last_hop_metric;
+ 	if (new_metric < orig_metric)
+ 		new_metric = MAX_METRIC;
+@@ -435,47 +440,89 @@
+ 		 */
+ 		process = false;
+ 		fresh_info = false;
+-	} else {
++	}
++
++	else // source is not me
++	{
+ 		mpath = mesh_path_lookup(sdata, orig_addr);
+-		if (mpath) {
++		if (mpath) 
++		{
+ 			spin_lock_bh(&mpath->state_lock);
++			// If path is fixed, we don't update it
+ 			if (mpath->flags & MESH_PATH_FIXED)
++			{
+ 				fresh_info = false;
++			}
++			// If path is active and SN is valid, we update it if SN is newer or if SN is the same and metric is better
++			// Figure 2 every yes arrow
+ 			else if ((mpath->flags & MESH_PATH_ACTIVE) &&
+-			    (mpath->flags & MESH_PATH_SN_VALID)) {
+-				if (SN_GT(mpath->sn, orig_sn) ||
++			    (mpath->flags & MESH_PATH_SN_VALID)) 
++			{
++				// Commented out the SN_GT because we needed to check if the SN + 1 is the same and the metric is better
++				if (/*SN_GT(mpath->sn, orig_sn) ||*/ 
+ 				    (mpath->sn == orig_sn &&
+ 				     (rcu_access_pointer(mpath->next_hop) !=
+ 						      sta ?
+ 					      mult_frac(new_metric, 10, 9) :
+-					      new_metric) >= mpath->metric)) {
++					      new_metric) <= mpath->metric)) 
++				{
+ 					process = false;
+ 					fresh_info = false;
+ 				}
+-			} else if (!(mpath->flags & MESH_PATH_ACTIVE)) {
+-				bool have_sn, newer_sn, bounced;
+-
++			}
++			// MPATH_SN + 1 == PREQ_SN && PREQ_Metric <= MPATH_Metric
++			else if ((mpath->flags & MESH_PATH_ACTIVE) &&
++			    (mpath->flags & MESH_PATH_SN_VALID)) 
++			{
++				if (((mpath->sn + 1) == orig_sn &&
++				     (rcu_access_pointer(mpath->next_hop) !=
++						      sta ?
++					      mult_frac(new_metric, 10, 9) :
++					      new_metric) <= mpath->metric)) 
++				{
++					// SN_VALID?
++					if (MESH_PATH_SN_VALID) {
++						mpath->flags &= ~MESH_PATH_SN_VALID;
++					}
++					process = false;
++					fresh_info = false;
++				}
++			}
++			
++			// If path is active and SN is not valid, we update it if SN is newer
++			else if (!(mpath->flags & MESH_PATH_ACTIVE)) 
++			{
+ 				have_sn = mpath->flags & MESH_PATH_SN_VALID;
+ 				newer_sn = have_sn && SN_GT(orig_sn, mpath->sn);
+ 				bounced = have_sn &&
+ 					  (SN_DELTA(orig_sn, mpath->sn) >
+ 							MAX_SANE_SN_DELTA);
+ 
+-				if (!have_sn || newer_sn) {
++				if (!have_sn || newer_sn) 
++				{
+ 					/* if SN is newer than what we had
+ 					 * then we can take it */;
+-				} else if (bounced) {
++				} 
++				else if (bounced) 
++				{
+ 					/* if SN is way different than what
+ 					 * we had then assume the other side
+ 					 * rebooted or restarted */;
+-				} else {
++				} 
++				else 
++				{
+ 					process = false;
+ 					fresh_info = false;
+ 				}
+ 			}
+-		} else {
++		} 
++		// If path is not found, we create it
++		// Figure 2 every no arrow 
++		else 
++		{
+ 			mpath = mesh_path_add(sdata, orig_addr);
+-			if (IS_ERR(mpath)) {
++			if (IS_ERR(mpath)) 
++			{
+ 				rcu_read_unlock();
+ 				return 0;
+ 			}
+@@ -485,6 +532,23 @@
+ 		if (fresh_info) {
+ 			if (rcu_access_pointer(mpath->next_hop) != sta)
+ 				mpath->path_change_count++;
++			
++			// Check all interfaces and find the one with the lowest metric.
++			// This is the one we will use to send the PREP.
++			rcu_read_lock();
++			list_for_each_entry_rcu(sdata, &local->interfaces, list) {
++				mpath = mesh_path_lookup(sdata, orig_addr);
++				temp_metric = mpath->metric;
++				if (temp_metric < lowest_metric) {
++					lowest_metric = temp_metric;
++					best_sdata = sdata;
++				}
++			}
++			rcu_read_unlock();
++			
++			sdata = best_sdata;
++			mpath = mesh_path_lookup(sdata, orig_addr);
++			
+ 			mesh_path_assign_nexthop(mpath, sta);
+ 			mpath->flags |= MESH_PATH_SN_VALID;
+ 			mpath->metric = new_metric;
+@@ -504,9 +568,11 @@
+ 		} else
+ 			spin_unlock_bh(&mpath->state_lock);
+ 	}
++	
+ 
+ 	/* Update and check transmitter routing info */
+ 	ta = mgmt->sa;
++
+ 	if (ether_addr_equal(orig_addr, ta))
+ 		fresh_info = false;
+ 	else {
+@@ -1122,6 +1188,7 @@
+ int mesh_nexthop_resolve(struct ieee80211_sub_if_data *sdata,
+ 			 struct sk_buff *skb)
+ {
++
+ 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *) skb->data;
+ 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
+ 	struct mesh_path *mpath;
+@@ -1129,18 +1196,22 @@
+ 	u8 *target_addr = hdr->addr3;
+ 
+ 	/* Nulls are only sent to peers for PS and should be pre-addressed */
+-	if (ieee80211_is_qos_nullfunc(hdr->frame_control))
++	if (ieee80211_is_qos_nullfunc(hdr->frame_control)) {
+ 		return 0;
++	}
+ 
+ 	/* Allow injected packets to bypass mesh routing */
+-	if (info->control.flags & IEEE80211_TX_CTRL_SKIP_MPATH_LOOKUP)
++	if (info->control.flags & IEEE80211_TX_CTRL_SKIP_MPATH_LOOKUP) {
+ 		return 0;
++	}
+ 
+-	if (!mesh_nexthop_lookup(sdata, skb))
++	if (!mesh_nexthop_lookup(sdata, skb)) {
+ 		return 0;
++	}
+ 
+ 	/* no nexthop found, start resolving */
+ 	mpath = mesh_path_lookup(sdata, target_addr);
++	
+ 	if (!mpath) {
+ 		mpath = mesh_path_add(sdata, target_addr);
+ 		if (IS_ERR(mpath)) {
+@@ -1199,6 +1270,7 @@
+ 		memcpy(hdr->addr1, next_hop->sta.addr, ETH_ALEN);
+ 		memcpy(hdr->addr2, sdata->vif.addr, ETH_ALEN);
+ 		ieee80211_mps_set_frame_flags(sdata, next_hop, hdr);
++
+ 		return 0;
+ 	}
+ 
+diff -ruN linux-5.3.6/net/mac80211/mesh_plink.c linux-5.3.6-wireless/net/mac80211/mesh_plink.c
+--- linux-5.3.6/net/mac80211/mesh_plink.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/mesh_plink.c	2023-10-15 22:29:10.044000000 +0300
+@@ -20,6 +20,9 @@
+ #define mod_plink_timer(s, t) (mod_timer(&s->mesh->plink_timer, \
+ 				jiffies + msecs_to_jiffies(t)))
+ 
++//Globals
++int neighbors = 0;
++
+ enum plink_event {
+ 	PLINK_UNDEFINED,
+ 	OPN_ACPT,
+@@ -482,11 +485,69 @@
+ }
+ 
+ static struct sta_info *
+-__mesh_sta_info_alloc(struct ieee80211_sub_if_data *sdata, u8 *hw_addr)
++__mesh_sta_info_alloc(struct ieee80211_sub_if_data *sdata,
++					  u8 *hw_addr, struct ieee80211_rx_status *rx_status)
+ {
+ 	struct sta_info *sta;
+-	int aid;
++	int aid, i;
++
++	char *name = "mesh";
++	char neighbors_str[1];
++
++	struct vif_params *params = {0};
++	struct wireless_dev *dev;
+ 
++	// Create the new Channel
++	// Channel must have the same frequency as the sender node
++	struct ieee80211_channel *new_chan;
++	struct ieee80211_local * local;
++		
++	u32 chan_freq = 5180;
++
++	struct cfg80211_chan_def *chandef;
++
++
++	// Change the MAC Address so there is no conflict in Layer 2
++	u8 new_mac[ETH_ALEN];
++	memcpy(new_mac,sdata->vif.addr, ETH_ALEN);
++	if (neighbors) 
++		for (i = 0; i < neighbors; i++) 
++			new_mac[5]++;
++		
++	// Check of the signal strength in order to define the distance of link.
++	// If the signal is less than -42dBm then we consider 2 hops are needed.
++	if(rx_status->signal < -42)		
++		return NULL;
++	
++	// If the signal is greater than -42dBm then we consider 1 hop is needed.
++	// In this case we create a new virtual interface in order to connect to the other node.
++	// This virtual interface is created in the same channel as the other node.
++	
++	// Change the name of Virtual Interfaces so there is no conflict in Layer 3
++	sprintf(neighbors_str, "%d", neighbors);
++	strcat(name, neighbors_str);
++	neighbors++;
++
++	dev = &(sdata->wdev);
++	ieee80211_if_add(sdata->local, name, NET_NAME_ENUM, &dev, NL80211_IFTYPE_MESH_POINT, params);
++	
++	local = sdata->local;
++	
++	rcu_read_lock();
++	list_for_each_entry_rcu(sdata, &local->interfaces, list) {
++		struct ieee80211_chanctx_conf __rcu *chanctx_conf;
++		chanctx_conf = sdata->vif.chanctx_conf;
++		if (chanctx_conf->def.chan->center_freq != chan_freq)
++			break;
++		chan_freq += 20;
++	}
++	rcu_read_unlock();
++	
++	new_chan = ieee80211_get_channel(sdata->local->hw.wiphy, chan_freq);
++	cfg80211_chandef_create (chandef, new_chan, NL80211_CHAN_HT20);
++	ieee80211_vif_use_channel(sdata, chandef, IEEE80211_CHANCTX_EXCLUSIVE);
++	
++	
+ 	if (sdata->local->num_sta >= MESH_MAX_PLINKS)
+ 		return NULL;
+ 
+@@ -498,7 +559,8 @@
+ 	if (!sta)
+ 		return NULL;
+ 
+-	sta->mesh->plink_state = NL80211_PLINK_LISTEN;
++	sta->mesh->plink_state = NL80211_PLINK_BLOCKED;
++	//sta->mesh->plink_state = NL80211_PLINK_LISTEN;
+ 	sta->sta.wme = true;
+ 	sta->sta.aid = aid;
+ 
+@@ -525,14 +587,13 @@
+ 
+ 			if (ieee80211_hw_check(&sdata->local->hw, SIGNAL_DBM))
+ 				sig = rx_status->signal;
+-
+ 			cfg80211_notify_new_peer_candidate(sdata->dev, addr,
+ 							   elems->ie_start,
+ 							   elems->total_len,
+ 							   sig, GFP_KERNEL);
+ 		}
+ 	} else
+-		sta = __mesh_sta_info_alloc(sdata, addr);
++		sta = __mesh_sta_info_alloc(sdata, addr, rx_status);
+ 
+ 	return sta;
+ }
+@@ -555,6 +616,7 @@
+ {
+ 	struct sta_info *sta = NULL;
+ 
++
+ 	rcu_read_lock();
+ 	sta = sta_info_get(sdata, addr);
+ 	if (sta) {
+diff -ruN linux-5.3.6/net/mac80211/offchannel.c linux-5.3.6-wireless/net/mac80211/offchannel.c
+--- linux-5.3.6/net/mac80211/offchannel.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/offchannel.c	2023-10-15 22:29:10.104000000 +0300
+@@ -802,7 +802,7 @@
+ 	case NL80211_IFTYPE_ADHOC:
+ 		if (!sdata->vif.bss_conf.ibss_joined)
+ 			need_offchan = true;
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 		/* fall through */
+ 	case NL80211_IFTYPE_MESH_POINT:
+ 		if (ieee80211_vif_is_mesh(&sdata->vif) &&
+diff -ruN linux-5.3.6/net/mac80211/rate.c linux-5.3.6-wireless/net/mac80211/rate.c
+--- linux-5.3.6/net/mac80211/rate.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/rate.c	2023-10-15 22:29:10.136000000 +0300
+@@ -22,7 +22,7 @@
+ static LIST_HEAD(rate_ctrl_algs);
+ static DEFINE_MUTEX(rate_ctrl_mutex);
+ 
+-static char *ieee80211_default_rc_algo = CONFIG_MAC80211_RC_DEFAULT;
++static char *ieee80211_default_rc_algo = CPTCFG_MAC80211_RC_DEFAULT;
+ module_param(ieee80211_default_rc_algo, charp, 0644);
+ MODULE_PARM_DESC(ieee80211_default_rc_algo,
+ 		 "Default rate control algorithm for mac80211 to use");
+@@ -194,16 +194,16 @@
+ 		ops = ieee80211_try_rate_control_ops_get(ieee80211_default_rc_algo);
+ 
+ 	/* Note: check for > 0 is intentional to avoid clang warning */
+-	if (!ops && (strlen(CONFIG_MAC80211_RC_DEFAULT) > 0))
++	if (!ops && (strlen(CPTCFG_MAC80211_RC_DEFAULT) > 0))
+ 		/* try built-in one if specific alg requested but not found */
+-		ops = ieee80211_try_rate_control_ops_get(CONFIG_MAC80211_RC_DEFAULT);
++		ops = ieee80211_try_rate_control_ops_get(CPTCFG_MAC80211_RC_DEFAULT);
+ 
+ 	kernel_param_unlock(THIS_MODULE);
+ 
+ 	return ops;
+ }
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ static ssize_t rcname_read(struct file *file, char __user *userbuf,
+ 			   size_t count, loff_t *ppos)
+ {
+@@ -234,7 +234,7 @@
+ 	if (!ref->ops)
+ 		goto free;
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	debugfsdir = debugfs_create_dir("rc", local->hw.wiphy->debugfsdir);
+ 	local->debugfs.rcdir = debugfsdir;
+ 	debugfs_create_file("name", 0400, debugfsdir, ref, &rcname_ops);
+@@ -255,7 +255,7 @@
+ {
+ 	ctrl_ref->ops->free(ctrl_ref->priv);
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	debugfs_remove_recursive(local->debugfs.rcdir);
+ 	local->debugfs.rcdir = NULL;
+ #endif
+diff -ruN linux-5.3.6/net/mac80211/rate.h linux-5.3.6-wireless/net/mac80211/rate.h
+--- linux-5.3.6/net/mac80211/rate.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/rate.h	2023-10-15 22:29:10.136000000 +0300
+@@ -52,7 +52,7 @@
+ 
+ static inline void rate_control_add_sta_debugfs(struct sta_info *sta)
+ {
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	struct rate_control_ref *ref = sta->rate_ctrl;
+ 	if (ref && sta->debugfs_dir && ref->ops->add_sta_debugfs)
+ 		ref->ops->add_sta_debugfs(ref->priv, sta->rate_ctrl_priv,
+@@ -62,7 +62,7 @@
+ 
+ static inline void rate_control_remove_sta_debugfs(struct sta_info *sta)
+ {
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	struct rate_control_ref *ref = sta->rate_ctrl;
+ 	if (ref && ref->ops->remove_sta_debugfs)
+ 		ref->ops->remove_sta_debugfs(ref->priv, sta->rate_ctrl_priv);
+@@ -79,7 +79,7 @@
+ 
+ 
+ /* Rate control algorithms */
+-#ifdef CONFIG_MAC80211_RC_MINSTREL
++#ifdef CPTCFG_MAC80211_RC_MINSTREL
+ int rc80211_minstrel_init(void);
+ void rc80211_minstrel_exit(void);
+ #else
+diff -ruN linux-5.3.6/net/mac80211/rc80211_minstrel.c linux-5.3.6-wireless/net/mac80211/rc80211_minstrel.c
+--- linux-5.3.6/net/mac80211/rc80211_minstrel.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/rc80211_minstrel.c	2023-10-15 22:29:10.144000000 +0300
+@@ -241,7 +241,7 @@
+ 	memcpy(mi->max_tp_rate, tmp_tp_rate, sizeof(mi->max_tp_rate));
+ 	mi->max_prob_rate = tmp_prob_rate;
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	/* use fixed index if set */
+ 	if (mp->fixed_rate_idx != -1) {
+ 		mi->max_tp_rate[0] = mp->fixed_rate_idx;
+@@ -352,7 +352,7 @@
+ 	/* increase sum packet counter */
+ 	mi->total_packets++;
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	if (mp->fixed_rate_idx != -1)
+ 		return;
+ #endif
+diff -ruN linux-5.3.6/net/mac80211/rc80211_minstrel.h linux-5.3.6-wireless/net/mac80211/rc80211_minstrel.h
+--- linux-5.3.6/net/mac80211/rc80211_minstrel.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/rc80211_minstrel.h	2023-10-15 22:29:10.148000000 +0300
+@@ -105,7 +105,7 @@
+ 
+ 	u8 cck_rates[4];
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	/*
+ 	 * enable fixed rate processing per RC
+ 	 *   - write static index to debugfs:ieee80211/phyX/rc/fixed_rate_idx
+diff -ruN linux-5.3.6/net/mac80211/rc80211_minstrel_ht.c linux-5.3.6-wireless/net/mac80211/rc80211_minstrel_ht.c
+--- linux-5.3.6/net/mac80211/rc80211_minstrel_ht.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/rc80211_minstrel_ht.c	2023-10-15 22:29:10.160000000 +0300
+@@ -622,7 +622,7 @@
+ 	/* try to sample all available rates during each interval */
+ 	mi->sample_count *= 8;
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	/* use fixed index if set */
+ 	if (mp->fixed_rate_idx != -1) {
+ 		for (i = 0; i < 4; i++)
+@@ -1102,7 +1102,7 @@
+ 
+ 	info->flags |= mi->tx_flags;
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	if (mp->fixed_rate_idx != -1)
+ 		return;
+ #endif
+@@ -1463,7 +1463,7 @@
+ 	mp->hw = hw;
+ 	mp->update_interval = 100;
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	mp->fixed_rate_idx = (u32) -1;
+ 	debugfs_create_u32("fixed_rate_idx", S_IRUGO | S_IWUGO, debugfsdir,
+ 			   &mp->fixed_rate_idx);
+@@ -1510,7 +1510,7 @@
+ 	.free_sta = minstrel_ht_free_sta,
+ 	.alloc = minstrel_ht_alloc,
+ 	.free = minstrel_ht_free,
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	.add_sta_debugfs = minstrel_ht_add_sta_debugfs,
+ #endif
+ 	.get_expected_throughput = minstrel_ht_get_expected_throughput,
+diff -ruN linux-5.3.6/net/mac80211/rx.c linux-5.3.6-wireless/net/mac80211/rx.c
+--- linux-5.3.6/net/mac80211/rx.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/rx.c	2023-10-15 22:29:10.204000000 +0300
+@@ -34,7 +34,7 @@
+ 
+ static inline void ieee80211_rx_stats(struct net_device *dev, u32 len)
+ {
+-	struct pcpu_sw_netstats *tstats = this_cpu_ptr(dev->tstats);
++	struct pcpu_sw_netstats *tstats = this_cpu_ptr(netdev_tstats(dev));
+ 
+ 	u64_stats_update_begin(&tstats->syncp);
+ 	tstats->rx_packets++;
+@@ -943,7 +943,7 @@
+  */
+ static void ieee80211_verify_alignment(struct ieee80211_rx_data *rx)
+ {
+-#ifdef CONFIG_MAC80211_VERBOSE_DEBUG
++#ifdef CPTCFG_MAC80211_VERBOSE_DEBUG
+ 	WARN_ON_ONCE((unsigned long)rx->skb->data & 1);
+ #endif
+ }
+@@ -1484,6 +1484,7 @@
+ 	 * responsible for filtering on both auth and assoc states.
+ 	 */
+ 
++	
+ 	if (ieee80211_vif_is_mesh(&rx->sdata->vif))
+ 		return ieee80211_rx_mesh_check(rx);
+ 
+@@ -1868,7 +1869,7 @@
+ 	}
+ 
+ 	return RX_CONTINUE;
+-} /* ieee80211_rx_h_sta_process */
++} 
+ 
+ static ieee80211_rx_result debug_noinline
+ ieee80211_rx_h_decrypt(struct ieee80211_rx_data *rx)
+@@ -2662,7 +2663,7 @@
+ 	return __ieee80211_rx_h_amsdu(rx, 0);
+ }
+ 
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ static ieee80211_rx_result
+ ieee80211_rx_h_mesh_fwding(struct ieee80211_rx_data *rx)
+ {
+@@ -3639,7 +3640,7 @@
+ 		CALL_RXH(ieee80211_rx_h_defragment);
+ 		CALL_RXH(ieee80211_rx_h_michael_mic_verify);
+ 		/* must be after MMIC verify so header is counted in MPDU mic */
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 		if (ieee80211_vif_is_mesh(&rx->sdata->vif))
+ 			CALL_RXH(ieee80211_rx_h_mesh_fwding);
+ #endif
+diff -ruN linux-5.3.6/net/mac80211/scan.c linux-5.3.6-wireless/net/mac80211/scan.c
+--- linux-5.3.6/net/mac80211/scan.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/scan.c	2023-10-15 22:29:10.208000000 +0300
+@@ -152,6 +152,7 @@
+ 	size_t baselen;
+ 	u8 *elements;
+ 
++	printk("Rx_status Signal: %d\n", rx_status->signal);
+ 	if (rx_status->flag & RX_FLAG_NO_SIGNAL_VAL)
+ 		bss_meta.signal = 0; /* invalid signal indication */
+ 	else if (ieee80211_hw_check(&local->hw, SIGNAL_DBM))
+diff -ruN linux-5.3.6/net/mac80211/sta_info.c linux-5.3.6-wireless/net/mac80211/sta_info.c
+--- linux-5.3.6/net/mac80211/sta_info.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/sta_info.c	2023-10-15 22:29:10.224000000 +0300
+@@ -70,7 +70,7 @@
+ 	.head_offset = offsetof(struct sta_info, hash_node),
+ 	.key_offset = offsetof(struct sta_info, addr),
+ 	.key_len = ETH_ALEN,
+-	.max_size = CONFIG_MAC80211_STA_HASH_MAX_SIZE,
++	.max_size = CPTCFG_MAC80211_STA_HASH_MAX_SIZE,
+ };
+ 
+ /* Caller must hold local->sta_mtx */
+@@ -251,7 +251,7 @@
+ 	if (sta->sta.txq[0])
+ 		kfree(to_txq_info(sta->sta.txq[0]));
+ 	kfree(rcu_dereference_raw(sta->sta.rates));
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 	kfree(sta->mesh);
+ #endif
+ 	free_percpu(sta->pcpu_rx_stats);
+@@ -324,7 +324,7 @@
+ 	INIT_WORK(&sta->drv_deliver_wk, sta_deliver_ps_frames);
+ 	INIT_WORK(&sta->ampdu_mlme.work, ieee80211_ba_session_work);
+ 	mutex_init(&sta->ampdu_mlme.mtx);
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 	if (ieee80211_vif_is_mesh(&sdata->vif)) {
+ 		sta->mesh = kzalloc(sizeof(*sta->mesh), gfp);
+ 		if (!sta->mesh)
+@@ -489,7 +489,7 @@
+ 		kfree(to_txq_info(sta->sta.txq[0]));
+ free:
+ 	free_percpu(sta->pcpu_rx_stats);
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 	kfree(sta->mesh);
+ #endif
+ 	kfree(sta);
+@@ -772,7 +772,7 @@
+ 			return;
+ 
+ 		ps = &sta->sdata->bss->ps;
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 	} else if (ieee80211_vif_is_mesh(&sta->sdata->vif)) {
+ 		ps = &sta->sdata->u.mesh.ps;
+ #endif
+@@ -2347,7 +2347,7 @@
+ 	}
+ 
+ 	if (ieee80211_vif_is_mesh(&sdata->vif)) {
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 		sinfo->filled |= BIT_ULL(NL80211_STA_INFO_LLID) |
+ 				 BIT_ULL(NL80211_STA_INFO_PLID) |
+ 				 BIT_ULL(NL80211_STA_INFO_PLINK_STATE) |
+diff -ruN linux-5.3.6/net/mac80211/sta_info.h linux-5.3.6-wireless/net/mac80211/sta_info.h
+--- linux-5.3.6/net/mac80211/sta_info.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/sta_info.h	2023-10-15 22:29:10.224000000 +0300
+@@ -537,7 +537,7 @@
+ 	struct ieee80211_fast_rx __rcu *fast_rx;
+ 	struct ieee80211_sta_rx_stats __percpu *pcpu_rx_stats;
+ 
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 	struct mesh_sta *mesh;
+ #endif
+ 
+@@ -605,7 +605,7 @@
+ 	 */
+ 	struct sta_ampdu_mlme ampdu_mlme;
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	struct dentry *debugfs_dir;
+ #endif
+ 
+@@ -626,7 +626,7 @@
+ 
+ static inline enum nl80211_plink_state sta_plink_state(struct sta_info *sta)
+ {
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 	return sta->mesh->plink_state;
+ #endif
+ 	return NL80211_PLINK_LISTEN;
+diff -ruN linux-5.3.6/net/mac80211/status.c linux-5.3.6-wireless/net/mac80211/status.c
+--- linux-5.3.6/net/mac80211/status.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/status.c	2023-10-15 22:29:10.232000000 +0300
+@@ -548,8 +548,10 @@
+ 	}
+ 
+ 	if (!dropped && skb->destructor) {
++#if LINUX_VERSION_IS_GEQ(3,3,0)
+ 		skb->wifi_acked_valid = 1;
+ 		skb->wifi_acked = acked;
++#endif
+ 	}
+ 
+ 	ieee80211_led_tx(local);
+diff -ruN linux-5.3.6/net/mac80211/trace.c linux-5.3.6-wireless/net/mac80211/trace.c
+--- linux-5.3.6/net/mac80211/trace.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/trace.c	2023-10-15 22:29:10.260000000 +0300
+@@ -11,18 +11,22 @@
+ #include "trace.h"
+ #include "trace_msg.h"
+ 
+-#ifdef CONFIG_MAC80211_MESSAGE_TRACING
++#ifdef CPTCFG_MAC80211_MESSAGE_TRACING
+ void __sdata_info(const char *fmt, ...)
+ {
+ 	struct va_format vaf = {
+ 		.fmt = fmt,
+ 	};
+-	va_list args;
++	va_list args, args2;
+ 
+ 	va_start(args, fmt);
+-	vaf.va = &args;
+ 
++	va_copy(args2, args);
++	vaf.va = &args2;
+ 	pr_info("%pV", &vaf);
++	va_end(args2);
++
++	vaf.va = &args;
+ 	trace_mac80211_info(&vaf);
+ 	va_end(args);
+ }
+@@ -35,10 +39,16 @@
+ 	va_list args;
+ 
+ 	va_start(args, fmt);
+-	vaf.va = &args;
+ 
+-	if (print)
++	if (print) {
++		va_list args2;
++
++		va_copy(args2, args);
++		vaf.va = &args2;
+ 		pr_debug("%pV", &vaf);
++		va_end(args2);
++	}
++	vaf.va = &args;
+ 	trace_mac80211_dbg(&vaf);
+ 	va_end(args);
+ }
+@@ -48,12 +58,16 @@
+ 	struct va_format vaf = {
+ 		.fmt = fmt,
+ 	};
+-	va_list args;
++	va_list args, args2;
+ 
+ 	va_start(args, fmt);
+-	vaf.va = &args;
+ 
++	va_copy(args2, args);
++	vaf.va = &args2;
+ 	pr_err("%pV", &vaf);
++	va_end(args2);
++
++	vaf.va = &args;
+ 	trace_mac80211_err(&vaf);
+ 	va_end(args);
+ }
+@@ -66,10 +80,16 @@
+ 	va_list args;
+ 
+ 	va_start(args, fmt);
+-	vaf.va = &args;
+ 
+-	if (print)
+-		wiphy_dbg(wiphy, "%pV", &vaf);
++	if (print) {
++		va_list args2;
++
++		va_copy(args2, args);
++		vaf.va = &args2;
++		pr_debug("%pV", &vaf);
++		va_end(args2);
++	}
++	vaf.va = &args;
+ 	trace_mac80211_dbg(&vaf);
+ 	va_end(args);
+ }
+diff -ruN linux-5.3.6/net/mac80211/trace_msg.h linux-5.3.6-wireless/net/mac80211/trace_msg.h
+--- linux-5.3.6/net/mac80211/trace_msg.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/trace_msg.h	2023-10-15 22:29:10.272000000 +0300
+@@ -4,7 +4,7 @@
+  * Copyright (C) 2019 Intel Corporation
+  */
+ 
+-#ifdef CONFIG_MAC80211_MESSAGE_TRACING
++#ifdef CPTCFG_MAC80211_MESSAGE_TRACING
+ 
+ #if !defined(__MAC80211_MSG_DRIVER_TRACE) || defined(TRACE_HEADER_MULTI_READ)
+ #define __MAC80211_MSG_DRIVER_TRACE
+diff -ruN linux-5.3.6/net/mac80211/tx.c linux-5.3.6-wireless/net/mac80211/tx.c
+--- linux-5.3.6/net/mac80211/tx.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/mac80211/tx.c	2023-10-15 22:29:10.284000000 +0300
+@@ -1,3 +1,4 @@
++
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+  * Copyright 2002-2005, Instant802 Networks, Inc.
+@@ -40,7 +41,7 @@
+ 
+ static inline void ieee80211_tx_stats(struct net_device *dev, u32 len)
+ {
+-	struct pcpu_sw_netstats *tstats = this_cpu_ptr(dev->tstats);
++	struct pcpu_sw_netstats *tstats = this_cpu_ptr(netdev_tstats(dev));
+ 
+ 	u64_stats_update_begin(&tstats->syncp);
+ 	tstats->tx_packets++;
+@@ -325,7 +326,7 @@
+ 	if (likely(tx->flags & IEEE80211_TX_UNICAST)) {
+ 		if (unlikely(!assoc &&
+ 			     ieee80211_is_data(hdr->frame_control))) {
+-#ifdef CONFIG_MAC80211_VERBOSE_DEBUG
++#ifdef CPTCFG_MAC80211_VERBOSE_DEBUG
+ 			sdata_info(tx->sdata,
+ 				   "dropped data frame to not associated station %pM\n",
+ 				   hdr->addr1);
+@@ -1628,7 +1629,7 @@
+ 		struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
+ 		int q = info->hw_queue;
+ 
+-#ifdef CONFIG_MAC80211_VERBOSE_DEBUG
++#ifdef CPTCFG_MAC80211_VERBOSE_DEBUG
+ 		if (WARN_ON_ONCE(q >= local->hw.queues)) {
+ 			__skb_unlink(skb, skbs);
+ 			ieee80211_free_txskb(&local->hw, skb);
+@@ -2002,6 +2003,7 @@
+ 	info->control.vif = &sdata->vif;
+ 
+ 	if (ieee80211_vif_is_mesh(&sdata->vif)) {
++
+ 		if (ieee80211_is_data(hdr->frame_control) &&
+ 		    is_unicast_ether_addr(hdr->addr1)) {
+ 			if (mesh_nexthop_resolve(sdata, skb))
+@@ -2011,6 +2013,10 @@
+ 		}
+ 	}
+ 
++	// Uncomment this to see the tx dest and src 
++	//print_addr(hdr->addr3, "ieee80211_xmit ~ dest");
++	//print_addr(hdr->addr4, "ieee80211_xmit ~ src ");
++
+ 	ieee80211_set_qos_hdr(sdata, skb);
+ 	ieee80211_tx(sdata, sta, skb, false, txdata_flags);
+ }
+@@ -2382,7 +2388,7 @@
+ 	case NL80211_IFTYPE_WDS:
+ 		sta = sta_info_get(sdata, sdata->u.wds.remote_addr);
+ 		break;
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 	case NL80211_IFTYPE_MESH_POINT:
+ 		/* determined much later */
+ 		*sta_out = NULL;
+@@ -2468,7 +2474,7 @@
+ 	if (IS_ERR(sta))
+ 		sta = NULL;
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	if (local->force_tx_status)
+ 		info_flags |= IEEE80211_TX_CTL_REQ_TX_STATUS;
+ #endif
+@@ -2531,7 +2537,7 @@
+ 		 */
+ 		band = local->hw.conf.chandef.chan->band;
+ 		break;
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 	case NL80211_IFTYPE_MESH_POINT:
+ 		if (!is_multicast_ether_addr(skb->data)) {
+ 			struct sta_info *next_hop;
+@@ -2610,6 +2616,7 @@
+ 		if ((ctrl_flags & IEEE80211_TX_CTRL_SKIP_MPATH_LOOKUP) &&
+ 		    is_zero_ether_addr(hdr.addr1))
+ 			memcpy(hdr.addr1, skb->data, ETH_ALEN);
++
+ 		break;
+ #endif
+ 	case NL80211_IFTYPE_STATION:
+@@ -2704,7 +2711,7 @@
+ 		     !multicast && !authorized &&
+ 		     (cpu_to_be16(ethertype) != sdata->control_port_protocol ||
+ 		      !ether_addr_equal(sdata->vif.addr, skb->data + ETH_ALEN)))) {
+-#ifdef CONFIG_MAC80211_VERBOSE_DEBUG
++#ifdef CPTCFG_MAC80211_VERBOSE_DEBUG
+ 		net_info_ratelimited("%s: dropped frame to %pM (unauthorized port)\n",
+ 				    sdata->name, hdr.addr1);
+ #endif
+@@ -2802,7 +2809,7 @@
+ 	if (encaps_data)
+ 		memcpy(skb_push(skb, encaps_len), encaps_data, encaps_len);
+ 
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 	if (meshhdrlen > 0)
+ 		memcpy(skb_push(skb, meshhdrlen), &mesh_hdr, meshhdrlen);
+ #endif
+@@ -3486,7 +3493,7 @@
+ 		      (tid_tx ? IEEE80211_TX_CTL_AMPDU : 0);
+ 	info->control.flags = IEEE80211_TX_CTRL_FAST_XMIT;
+ 
+-#ifdef CONFIG_MAC80211_DEBUGFS
++#ifdef CPTCFG_MAC80211_DEBUGFS
+ 	if (local->force_tx_status)
+ 		info->flags |= IEEE80211_TX_CTL_REQ_TX_STATUS;
+ #endif
+diff -ruN linux-5.3.6/net/Makefile linux-5.3.6-wireless/net/Makefile
+--- linux-5.3.6/net/Makefile	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/Makefile	2023-10-15 22:29:09.356000000 +0300
+@@ -47,8 +47,8 @@
+ obj-$(CONFIG_IP_DCCP)		+= dccp/
+ obj-$(CONFIG_IP_SCTP)		+= sctp/
+ obj-$(CONFIG_RDS)		+= rds/
+-obj-$(CONFIG_WIRELESS)		+= wireless/
+-obj-$(CONFIG_MAC80211)		+= mac80211/
++obj-$(CPTCFG_WIRELESS)		+= wireless/
++obj-$(CPTCFG_MAC80211)		+= mac80211/
+ obj-$(CONFIG_TIPC)		+= tipc/
+ obj-$(CONFIG_NETLABEL)		+= netlabel/
+ obj-$(CONFIG_IUCV)		+= iucv/
+diff -ruN linux-5.3.6/net/wireless/chan.c linux-5.3.6-wireless/net/wireless/chan.c
+--- linux-5.3.6/net/wireless/chan.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/chan.c	2023-10-15 22:29:12.448000000 +0300
+@@ -841,7 +841,7 @@
+ 
+ 	ASSERT_RTNL();
+ 
+-	if (!IS_ENABLED(CONFIG_CFG80211_REG_RELAX_NO_IR) ||
++	if (!IS_ENABLED(CPTCFG_CFG80211_REG_RELAX_NO_IR) ||
+ 	    !(wiphy->regulatory_flags & REGULATORY_ENABLE_RELAX_NO_IR))
+ 		return false;
+ 
+diff -ruN linux-5.3.6/net/wireless/core.c linux-5.3.6-wireless/net/wireless/core.c
+--- linux-5.3.6/net/wireless/core.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/core.c	2023-10-15 22:29:12.452000000 +0300
+@@ -404,6 +404,17 @@
+ 	struct cfg80211_registered_device *rdev;
+ 	int alloc_size;
+ 
++	/*
++	 * Make sure the padding is >= the rest of the struct so that we
++	 * always keep it large enough to pad out the entire original
++	 * kernel's struct. We really only need to make sure it's larger
++	 * than the kernel compat is compiled against, but since it'll
++	 * only increase in size make sure it's larger than the current
++	 * version of it. Subtract since it's included.
++	 */
++	BUILD_BUG_ON(WIPHY_COMPAT_PAD_SIZE <
++		     sizeof(struct wiphy) - WIPHY_COMPAT_PAD_SIZE);
++
+ 	WARN_ON(ops->add_key && (!ops->del_key || !ops->set_default_key));
+ 	WARN_ON(ops->auth && (!ops->assoc || !ops->deauth || !ops->disassoc));
+ 	WARN_ON(ops->connect && !ops->disconnect);
+@@ -486,10 +497,6 @@
+ 	INIT_WORK(&rdev->mlme_unreg_wk, cfg80211_mlme_unreg_wk);
+ 	INIT_DELAYED_WORK(&rdev->dfs_update_channels_wk,
+ 			  cfg80211_dfs_channels_update_work);
+-#ifdef CONFIG_CFG80211_WEXT
+-	rdev->wiphy.wext = &cfg80211_wext_handler;
+-#endif
+-
+ 	device_initialize(&rdev->wiphy.dev);
+ 	rdev->wiphy.dev.class = &ieee80211_class;
+ 	rdev->wiphy.dev.platform_data = rdev;
+@@ -502,7 +509,7 @@
+ 		  cfg80211_propagate_radar_detect_wk);
+ 	INIT_WORK(&rdev->propagate_cac_done_wk, cfg80211_propagate_cac_done_wk);
+ 
+-#ifdef CONFIG_CFG80211_DEFAULT_PS
++#ifdef CPTCFG_CFG80211_DEFAULT_PS
+ 	rdev->wiphy.flags |= WIPHY_FLAG_PS_ON_BY_DEFAULT;
+ #endif
+ 
+@@ -631,7 +638,7 @@
+ 				return -EINVAL;
+ 		}
+ 
+-#ifndef CONFIG_WIRELESS_WDS
++#ifndef CPTCFG_WIRELESS_WDS
+ 		if (WARN_ON(all_iftypes & BIT(NL80211_IFTYPE_WDS)))
+ 			return -EINVAL;
+ #endif
+@@ -675,7 +682,7 @@
+ 		     !(wiphy->nan_supported_bands & BIT(NL80211_BAND_2GHZ)))))
+ 		return -EINVAL;
+ 
+-#ifndef CONFIG_WIRELESS_WDS
++#ifndef CPTCFG_WIRELESS_WDS
+ 	if (WARN_ON(wiphy->interface_modes & BIT(NL80211_IFTYPE_WDS)))
+ 		return -EINVAL;
+ #endif
+@@ -1104,7 +1111,7 @@
+ 		break;
+ 	}
+ 
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	kzfree(wdev->wext.keys);
+ #endif
+ 	/* only initialized if we have a netdev */
+@@ -1160,7 +1167,7 @@
+ 				cfg80211_stop_sched_scan_req(rdev, pos, false);
+ 		}
+ 
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 		kfree(wdev->wext.ie);
+ 		wdev->wext.ie = NULL;
+ 		wdev->wext.ie_len = 0;
+@@ -1287,7 +1294,16 @@
+ 			pr_err("failed to add phy80211 symlink to netdev!\n");
+ 		}
+ 		wdev->netdev = dev;
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
++#ifdef CONFIG_WIRELESS_EXT
++		if (!dev->wireless_handlers)
++			dev->wireless_handlers = &cfg80211_wext_handler;
++#else
++		printk_once(KERN_WARNING "cfg80211: wext will not work because "
++			    "kernel was compiled with CONFIG_WIRELESS_EXT=n. "
++			    "Tools using wext interface, like iwconfig will "
++			    "not work.\n");
++#endif
+ 		wdev->wext.default_key = -1;
+ 		wdev->wext.default_mgmt_key = -1;
+ 		wdev->wext.connect.auth_type = NL80211_AUTHTYPE_AUTOMATIC;
+@@ -1333,7 +1349,7 @@
+ 		cfg80211_update_iface_num(rdev, wdev->iftype, 1);
+ 		wdev_lock(wdev);
+ 		switch (wdev->iftype) {
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 		case NL80211_IFTYPE_ADHOC:
+ 			cfg80211_ibss_wext_join(rdev, wdev);
+ 			break;
+@@ -1341,7 +1357,7 @@
+ 			cfg80211_mgd_wext_connect(rdev, wdev);
+ 			break;
+ #endif
+-#ifdef CONFIG_MAC80211_MESH
++#ifdef CPTCFG_MAC80211_MESH
+ 		case NL80211_IFTYPE_MESH_POINT:
+ 			{
+ 				/* backward compat code... */
+diff -ruN linux-5.3.6/net/wireless/core.h linux-5.3.6-wireless/net/wireless/core.h
+--- linux-5.3.6/net/wireless/core.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/core.h	2023-10-15 22:29:12.456000000 +0300
+@@ -535,7 +535,7 @@
+ cfg80211_bss_update(struct cfg80211_registered_device *rdev,
+ 		    struct cfg80211_internal_bss *tmp,
+ 		    bool signal_valid, unsigned long ts);
+-#ifdef CONFIG_CFG80211_DEVELOPER_WARNINGS
++#ifdef CPTCFG_CFG80211_DEVELOPER_WARNINGS
+ #define CFG80211_DEV_WARN_ON(cond)	WARN_ON(cond)
+ #else
+ /*
+diff -ruN linux-5.3.6/net/wireless/debugfs.h linux-5.3.6-wireless/net/wireless/debugfs.h
+--- linux-5.3.6/net/wireless/debugfs.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/debugfs.h	2023-10-15 22:29:12.460000000 +0300
+@@ -2,7 +2,7 @@
+ #ifndef __CFG80211_DEBUGFS_H
+ #define __CFG80211_DEBUGFS_H
+ 
+-#ifdef CONFIG_CFG80211_DEBUGFS
++#ifdef CPTCFG_CFG80211_DEBUGFS
+ void cfg80211_debugfs_rdev_add(struct cfg80211_registered_device *rdev);
+ #else
+ static inline
+diff -ruN linux-5.3.6/net/wireless/ibss.c linux-5.3.6-wireless/net/wireless/ibss.c
+--- linux-5.3.6/net/wireless/ibss.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/ibss.c	2023-10-15 22:29:12.476000000 +0300
+@@ -20,7 +20,7 @@
+ {
+ 	struct wireless_dev *wdev = dev->ieee80211_ptr;
+ 	struct cfg80211_bss *bss;
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	union iwreq_data wrqu;
+ #endif
+ 
+@@ -49,7 +49,7 @@
+ 
+ 	nl80211_send_ibss_bssid(wiphy_to_rdev(wdev->wiphy), dev, bssid,
+ 				GFP_KERNEL);
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	memset(&wrqu, 0, sizeof(wrqu));
+ 	memcpy(wrqu.ap_addr.sa_data, bssid, ETH_ALEN);
+ 	wireless_send_event(dev, SIOCGIWAP, &wrqu, NULL);
+@@ -132,7 +132,7 @@
+ 		params->wep_tx_key = connkeys->def;
+ 	}
+ 
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	wdev->wext.ibss.chandef = params->chandef;
+ #endif
+ 	err = rdev_join_ibss(rdev, dev, params);
+@@ -176,7 +176,7 @@
+ 	wdev->current_bss = NULL;
+ 	wdev->ssid_len = 0;
+ 	memset(&wdev->chandef, 0, sizeof(wdev->chandef));
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	if (!nowext)
+ 		wdev->wext.ibss.ssid_len = 0;
+ #endif
+@@ -227,7 +227,7 @@
+ 	return err;
+ }
+ 
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ int cfg80211_ibss_wext_join(struct cfg80211_registered_device *rdev,
+ 			    struct wireless_dev *wdev)
+ {
+diff -ruN linux-5.3.6/net/wireless/Kconfig linux-5.3.6-wireless/net/wireless/Kconfig
+--- linux-5.3.6/net/wireless/Kconfig	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/Kconfig	2023-10-15 22:29:12.436000000 +0300
+@@ -1,26 +1,9 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+-config WIRELESS_EXT
+-	bool
+-
+-config WEXT_CORE
+-	def_bool y
+-	depends on CFG80211_WEXT || WIRELESS_EXT
+-
+-config WEXT_PROC
+-	def_bool y
+-	depends on PROC_FS
+-	depends on WEXT_CORE
+-
+-config WEXT_SPY
+-	bool
+-
+-config WEXT_PRIV
+-	bool
+-
+ config CFG80211
+ 	tristate "cfg80211 - wireless configuration API"
++	depends on m
+ 	depends on RFKILL || !RFKILL
+-	select FW_LOADER
++	depends on FW_LOADER
+ 	# may need to update this when certificates are changed and are
+ 	# using a different algorithm, though right now they shouldn't
+ 	# (this is here rather than below to allow it to be a module)
+@@ -91,7 +74,7 @@
+ config CFG80211_REQUIRE_SIGNED_REGDB
+ 	bool "require regdb signature" if CFG80211_CERTIFICATION_ONUS
+ 	default y
+-	select SYSTEM_DATA_VERIFICATION
++	select BPAUTO_SYSTEM_DATA_VERIFICATION
+ 	help
+ 	  Require that in addition to the "regulatory.db" file a
+ 	  "regulatory.db.p7s" can be loaded with a valid PKCS#7
+@@ -188,7 +171,7 @@
+ 
+ config CFG80211_WEXT
+ 	bool "cfg80211 wireless extensions compatibility" if !CFG80211_WEXT_EXPORT
+-	select WEXT_CORE
++	depends on WEXT_CORE
+ 	default y if CFG80211_WEXT_EXPORT
+ 	help
+ 	  Enable this option if you need old userspace for wireless
+@@ -204,6 +187,7 @@
+ 
+ config LIB80211
+ 	tristate
++	depends on m
+ 	default n
+ 	help
+ 	  This options enables a library of common routines used
+@@ -213,14 +197,17 @@
+ 
+ config LIB80211_CRYPT_WEP
+ 	tristate
+-	select CRYPTO_LIB_ARC4
++	depends on m
++	select BPAUTO_CRYPTO_LIB_ARC4
+ 
+ config LIB80211_CRYPT_CCMP
+ 	tristate
++	depends on m
+ 
+ config LIB80211_CRYPT_TKIP
+ 	tristate
+-	select CRYPTO_LIB_ARC4
++	depends on m
++	select BPAUTO_CRYPTO_LIB_ARC4
+ 
+ config LIB80211_DEBUG
+ 	bool "lib80211 debugging messages"
+diff -ruN linux-5.3.6/net/wireless/lib80211_crypt_ccmp.c linux-5.3.6-wireless/net/wireless/lib80211_crypt_ccmp.c
+--- linux-5.3.6/net/wireless/lib80211_crypt_ccmp.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/lib80211_crypt_ccmp.c	2023-10-15 22:29:12.480000000 +0300
+@@ -326,7 +326,7 @@
+ 	pos += 8;
+ 
+ 	if (ccmp_replay_check(pn, key->rx_pn)) {
+-#ifdef CONFIG_LIB80211_DEBUG
++#ifdef CPTCFG_LIB80211_DEBUG
+ 		net_dbg_ratelimited("CCMP: replay detected: STA=%pM previous PN %02x%02x%02x%02x%02x%02x received PN %02x%02x%02x%02x%02x%02x\n",
+ 				    hdr->addr2,
+ 				    key->rx_pn[0], key->rx_pn[1], key->rx_pn[2],
+diff -ruN linux-5.3.6/net/wireless/lib80211_crypt_tkip.c linux-5.3.6-wireless/net/wireless/lib80211_crypt_tkip.c
+--- linux-5.3.6/net/wireless/lib80211_crypt_tkip.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/lib80211_crypt_tkip.c	2023-10-15 22:29:12.488000000 +0300
+@@ -419,7 +419,7 @@
+ 	pos += TKIP_HDR_LEN;
+ 
+ 	if (tkip_replay_check(iv32, iv16, tkey->rx_iv32, tkey->rx_iv16)) {
+-#ifdef CONFIG_LIB80211_DEBUG
++#ifdef CPTCFG_LIB80211_DEBUG
+ 		net_dbg_ratelimited("TKIP: replay detected: STA=%pM previous TSC %08x%04x received TSC %08x%04x\n",
+ 				    hdr->addr2, tkey->rx_iv32, tkey->rx_iv16,
+ 				    iv32, iv16);
+@@ -450,7 +450,7 @@
+ 			 * it needs to be recalculated for the next packet. */
+ 			tkey->rx_phase1_done = 0;
+ 		}
+-#ifdef CONFIG_LIB80211_DEBUG
++#ifdef CPTCFG_LIB80211_DEBUG
+ 		net_dbg_ratelimited("TKIP: ICV error detected: STA=%pM\n",
+ 				    hdr->addr2);
+ #endif
+diff -ruN linux-5.3.6/net/wireless/Makefile linux-5.3.6-wireless/net/wireless/Makefile
+--- linux-5.3.6/net/wireless/Makefile	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/Makefile	2023-10-15 22:29:12.436000000 +0300
+@@ -1,9 +1,9 @@
+ # SPDX-License-Identifier: GPL-2.0
+-obj-$(CONFIG_CFG80211) += cfg80211.o
+-obj-$(CONFIG_LIB80211) += lib80211.o
+-obj-$(CONFIG_LIB80211_CRYPT_WEP) += lib80211_crypt_wep.o
+-obj-$(CONFIG_LIB80211_CRYPT_CCMP) += lib80211_crypt_ccmp.o
+-obj-$(CONFIG_LIB80211_CRYPT_TKIP) += lib80211_crypt_tkip.o
++obj-$(CPTCFG_CFG80211) += cfg80211.o
++obj-$(CPTCFG_LIB80211) += lib80211.o
++obj-$(CPTCFG_LIB80211_CRYPT_WEP) += lib80211_crypt_wep.o
++obj-$(CPTCFG_LIB80211_CRYPT_CCMP) += lib80211_crypt_ccmp.o
++obj-$(CPTCFG_LIB80211_CRYPT_TKIP) += lib80211_crypt_tkip.o
+ 
+ obj-$(CONFIG_WEXT_CORE) += wext-core.o
+ obj-$(CONFIG_WEXT_PROC) += wext-proc.o
+@@ -14,17 +14,17 @@
+ cfg80211-y += mlme.o ibss.o sme.o chan.o ethtool.o mesh.o ap.o trace.o ocb.o
+ cfg80211-y += pmsr.o
+ cfg80211-$(CONFIG_OF) += of.o
+-cfg80211-$(CONFIG_CFG80211_DEBUGFS) += debugfs.o
+-cfg80211-$(CONFIG_CFG80211_WEXT) += wext-compat.o wext-sme.o
++cfg80211-$(CPTCFG_CFG80211_DEBUGFS) += debugfs.o
++cfg80211-$(CPTCFG_CFG80211_WEXT) += wext-compat.o wext-sme.o
+ 
+ CFLAGS_trace.o := -I$(src)
+ 
+-cfg80211-$(CONFIG_CFG80211_USE_KERNEL_REGDB_KEYS) += shipped-certs.o
+-ifneq ($(CONFIG_CFG80211_EXTRA_REGDB_KEYDIR),)
++cfg80211-$(CPTCFG_CFG80211_USE_KERNEL_REGDB_KEYS) += shipped-certs.o
++ifneq ($(CPTCFG_CFG80211_EXTRA_REGDB_KEYDIR),)
+ cfg80211-y += extra-certs.o
+ endif
+ 
+-$(obj)/shipped-certs.c: $(wildcard $(srctree)/$(src)/certs/*.hex)
++$(obj)/shipped-certs.c: $(wildcard $(src)/certs/*.hex)
+ 	@$(kecho) "  GEN     $@"
+ 	@(echo '#include "reg.h"'; \
+ 	  echo 'const u8 shipped_regdb_certs[] = {'; \
+@@ -33,8 +33,8 @@
+ 	  echo 'unsigned int shipped_regdb_certs_len = sizeof(shipped_regdb_certs);'; \
+ 	 ) > $@
+ 
+-$(obj)/extra-certs.c: $(CONFIG_CFG80211_EXTRA_REGDB_KEYDIR:"%"=%) \
+-		      $(wildcard $(CONFIG_CFG80211_EXTRA_REGDB_KEYDIR:"%"=%)/*.x509)
++$(obj)/extra-certs.c: $(CPTCFG_CFG80211_EXTRA_REGDB_KEYDIR:"%"=%) \
++		      $(wildcard $(CPTCFG_CFG80211_EXTRA_REGDB_KEYDIR:"%"=%)/*.x509)
+ 	@$(kecho) "  GEN     $@"
+ 	@(set -e; \
+ 	  allf=""; \
+diff -ruN linux-5.3.6/net/wireless/mlme.c linux-5.3.6-wireless/net/wireless/mlme.c
+--- linux-5.3.6/net/wireless/mlme.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/mlme.c	2023-10-15 22:29:12.496000000 +0300
+@@ -196,7 +196,7 @@
+ {
+ 	struct wiphy *wiphy = dev->ieee80211_ptr->wiphy;
+ 	struct cfg80211_registered_device *rdev = wiphy_to_rdev(wiphy);
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	union iwreq_data wrqu;
+ 	char *buf = kmalloc(128, gfp);
+ 
+diff -ruN linux-5.3.6/net/wireless/nl80211.c linux-5.3.6-wireless/net/wireless/nl80211.c
+--- linux-5.3.6/net/wireless/nl80211.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/nl80211.c	2023-10-15 22:29:12.504000000 +0300
+@@ -49,14 +49,14 @@
+ 	NL80211_MCGRP_TESTMODE /* keep last - ifdef! */
+ };
+ 
+-static const struct genl_multicast_group nl80211_mcgrps[] = {
++static __genl_const struct genl_multicast_group nl80211_mcgrps[] = {
+ 	[NL80211_MCGRP_CONFIG] = { .name = NL80211_MULTICAST_GROUP_CONFIG },
+ 	[NL80211_MCGRP_SCAN] = { .name = NL80211_MULTICAST_GROUP_SCAN },
+ 	[NL80211_MCGRP_REGULATORY] = { .name = NL80211_MULTICAST_GROUP_REG },
+ 	[NL80211_MCGRP_MLME] = { .name = NL80211_MULTICAST_GROUP_MLME },
+ 	[NL80211_MCGRP_VENDOR] = { .name = NL80211_MULTICAST_GROUP_VENDOR },
+ 	[NL80211_MCGRP_NAN] = { .name = NL80211_MULTICAST_GROUP_NAN },
+-#ifdef CONFIG_NL80211_TESTMODE
++#ifdef CPTCFG_NL80211_TESTMODE
+ 	[NL80211_MCGRP_TESTMODE] = { .name = NL80211_MULTICAST_GROUP_TESTMODE }
+ #endif
+ };
+@@ -1008,7 +1008,7 @@
+ 	struct nlattr *tb[NL80211_KEY_MAX + 1];
+ 	int err = nla_parse_nested_deprecated(tb, NL80211_KEY_MAX, key,
+ 					      nl80211_key_policy,
+-					      info->extack);
++					      genl_info_extack(info));
+ 	if (err)
+ 		return err;
+ 
+@@ -1048,7 +1048,7 @@
+ 						  NUM_NL80211_KEY_DEFAULT_TYPES - 1,
+ 						  tb[NL80211_KEY_DEFAULT_TYPES],
+ 						  nl80211_key_default_policy,
+-						  info->extack);
++						  genl_info_extack(info));
+ 		if (err)
+ 			return err;
+ 
+@@ -1099,7 +1099,7 @@
+ 						      NUM_NL80211_KEY_DEFAULT_TYPES - 1,
+ 						      info->attrs[NL80211_ATTR_KEY_DEFAULT_TYPES],
+ 						      nl80211_key_default_policy,
+-						      info->extack);
++						      genl_info_extack(info));
+ 		if (err)
+ 			return err;
+ 
+@@ -1743,7 +1743,7 @@
+ 	}
+ 	CMD(start_p2p_device, START_P2P_DEVICE);
+ 	CMD(set_mcast_rate, SET_MCAST_RATE);
+-#ifdef CONFIG_NL80211_TESTMODE
++#ifdef CPTCFG_NL80211_TESTMODE
+ 	CMD(testmode_cmd, TESTMODE);
+ #endif
+ 
+@@ -2466,10 +2466,11 @@
+ 		do {
+ 			ret = nl80211_send_wiphy(rdev, NL80211_CMD_NEW_WIPHY,
+ 						 skb,
+-						 NETLINK_CB(cb->skb).portid,
++						 NETLINK_CB_PORTID(cb->skb),
+ 						 cb->nlh->nlmsg_seq,
+ 						 NLM_F_MULTI, state);
+ 			if (ret < 0) {
++#if LINUX_VERSION_IS_GEQ(3,1,0)
+ 				/*
+ 				 * If sending the wiphy data didn't fit (ENOBUFS
+ 				 * or EMSGSIZE returned), this SKB is still
+@@ -2491,6 +2492,7 @@
+ 					rtnl_unlock();
+ 					return 1;
+ 				}
++#endif
+ 				idx--;
+ 				break;
+ 			}
+@@ -2521,7 +2523,7 @@
+ 		return -ENOMEM;
+ 
+ 	if (nl80211_send_wiphy(rdev, NL80211_CMD_NEW_WIPHY, msg,
+-			       info->snd_portid, info->snd_seq, 0,
++			       genl_info_snd_portid(info), info->snd_seq, 0,
+ 			       &state) < 0) {
+ 		nlmsg_free(msg);
+ 		return -ENOBUFS;
+@@ -2588,7 +2590,7 @@
+ 			  struct genl_info *info,
+ 			  struct cfg80211_chan_def *chandef)
+ {
+-	struct netlink_ext_ack *extack = info->extack;
++	struct netlink_ext_ack *extack = genl_info_extack(info);
+ 	struct nlattr **attrs = info->attrs;
+ 	u32 control_freq;
+ 
+@@ -2852,7 +2854,7 @@
+ 							     NL80211_TXQ_ATTR_MAX,
+ 							     nl_txq_params,
+ 							     txq_params_policy,
+-							     info->extack);
++							     genl_info_extack(info));
+ 			if (result)
+ 				return result;
+ 			result = parse_txq_params(tb, &txq_params);
+@@ -3249,7 +3251,7 @@
+ 				if_idx++;
+ 				continue;
+ 			}
+-			if (nl80211_send_iface(skb, NETLINK_CB(cb->skb).portid,
++			if (nl80211_send_iface(skb, NETLINK_CB_PORTID(cb->skb),
+ 					       cb->nlh->nlmsg_seq, NLM_F_MULTI,
+ 					       rdev, wdev,
+ 					       NL80211_CMD_NEW_INTERFACE) < 0) {
+@@ -3281,7 +3283,7 @@
+ 	if (!msg)
+ 		return -ENOMEM;
+ 
+-	if (nl80211_send_iface(msg, info->snd_portid, info->snd_seq, 0,
++	if (nl80211_send_iface(msg, genl_info_snd_portid(info), info->snd_seq, 0,
+ 			       rdev, wdev, NL80211_CMD_NEW_INTERFACE) < 0) {
+ 		nlmsg_free(msg);
+ 		return -ENOBUFS;
+@@ -3542,7 +3544,7 @@
+ 	}
+ 
+ 	if (info->attrs[NL80211_ATTR_SOCKET_OWNER])
+-		wdev->owner_nlportid = info->snd_portid;
++		wdev->owner_nlportid = genl_info_snd_portid(info);
+ 
+ 	switch (type) {
+ 	case NL80211_IFTYPE_MESH_POINT:
+@@ -3569,7 +3571,7 @@
+ 		break;
+ 	}
+ 
+-	if (nl80211_send_iface(msg, info->snd_portid, info->snd_seq, 0,
++	if (nl80211_send_iface(msg, genl_info_snd_portid(info), info->snd_seq, 0,
+ 			       rdev, wdev, NL80211_CMD_NEW_INTERFACE) < 0) {
+ 		nlmsg_free(msg);
+ 		return -ENOBUFS;
+@@ -3703,7 +3705,8 @@
+ 	if (!msg)
+ 		return -ENOMEM;
+ 
+-	hdr = nl80211hdr_put(msg, info->snd_portid, info->snd_seq, 0,
++	hdr = nl80211hdr_put(msg, genl_info_snd_portid(info), info->snd_seq,
++			     0,
+ 			     NL80211_CMD_NEW_KEY);
+ 	if (!hdr)
+ 		goto nla_put_failure;
+@@ -3776,7 +3779,7 @@
+ 		if (err)
+ 			goto out;
+ 
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 		dev->ieee80211_ptr->wext.default_key = key.idx;
+ #endif
+ 	} else if (key.defmgmt) {
+@@ -3798,7 +3801,7 @@
+ 		if (err)
+ 			goto out;
+ 
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 		dev->ieee80211_ptr->wext.default_mgmt_key = key.idx;
+ #endif
+ 	} else if (key.p.mode == NL80211_KEY_SET_TX &&
+@@ -3917,7 +3920,7 @@
+ 				   key.type == NL80211_KEYTYPE_PAIRWISE,
+ 				   mac_addr);
+ 
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	if (!err) {
+ 		if (key.idx == dev->ieee80211_ptr->wext.default_key)
+ 			dev->ieee80211_ptr->wext.default_key = -1;
+@@ -4196,7 +4199,7 @@
+ 		err = nla_parse_nested_deprecated(tb, NL80211_TXRATE_MAX,
+ 						  tx_rates,
+ 						  nl80211_txattr_policy,
+-						  info->extack);
++						  genl_info_extack(info));
+ 		if (err)
+ 			return err;
+ 		if (tb[NL80211_TXRATE_LEGACY]) {
+@@ -4693,7 +4696,7 @@
+ 		memcpy(wdev->ssid, params.ssid, wdev->ssid_len);
+ 
+ 		if (info->attrs[NL80211_ATTR_SOCKET_OWNER])
+-			wdev->conn_owner_nlportid = info->snd_portid;
++			wdev->conn_owner_nlportid = genl_info_snd_portid(info);
+ 	}
+ 	wdev_unlock(wdev);
+ 
+@@ -4780,7 +4783,7 @@
+ 	if (!nla)
+ 		return 0;
+ 
+-	if (nla_parse_nested_deprecated(flags, NL80211_STA_FLAG_MAX, nla, sta_flags_policy, info->extack))
++	if (nla_parse_nested_deprecated(flags, NL80211_STA_FLAG_MAX, nla, sta_flags_policy, genl_info_extack(info)))
+ 		return -EINVAL;
+ 
+ 	/*
+@@ -5184,7 +5187,7 @@
+ 			goto out_err;
+ 
+ 		if (nl80211_send_station(skb, NL80211_CMD_NEW_STATION,
+-				NETLINK_CB(cb->skb).portid,
++				NETLINK_CB_PORTID(cb->skb),
+ 				cb->nlh->nlmsg_seq, NLM_F_MULTI,
+ 				rdev, wdev->netdev, mac_addr,
+ 				&sinfo) < 0)
+@@ -5232,7 +5235,7 @@
+ 	}
+ 
+ 	if (nl80211_send_station(msg, NL80211_CMD_NEW_STATION,
+-				 info->snd_portid, info->snd_seq, 0,
++				 genl_info_snd_portid(info), info->snd_seq, 0,
+ 				 rdev, dev, mac_addr, &sinfo) < 0) {
+ 		nlmsg_free(msg);
+ 		return -ENOBUFS;
+@@ -5453,7 +5456,7 @@
+ 	nla = info->attrs[NL80211_ATTR_STA_WME];
+ 	err = nla_parse_nested_deprecated(tb, NL80211_STA_WME_MAX, nla,
+ 					  nl80211_sta_wme_policy,
+-					  info->extack);
++					  genl_info_extack(info));
+ 	if (err)
+ 		return err;
+ 
+@@ -6065,7 +6068,7 @@
+ 		if (err)
+ 			goto out_err;
+ 
+-		if (nl80211_send_mpath(skb, NETLINK_CB(cb->skb).portid,
++		if (nl80211_send_mpath(skb, NETLINK_CB_PORTID(cb->skb),
+ 				       cb->nlh->nlmsg_seq, NLM_F_MULTI,
+ 				       wdev->netdev, dst, next_hop,
+ 				       &pinfo) < 0)
+@@ -6113,7 +6116,7 @@
+ 	if (!msg)
+ 		return -ENOMEM;
+ 
+-	if (nl80211_send_mpath(msg, info->snd_portid, info->snd_seq, 0,
++	if (nl80211_send_mpath(msg, genl_info_snd_portid(info), info->snd_seq, 0,
+ 				 dev, dst, next_hop, &pinfo) < 0) {
+ 		nlmsg_free(msg);
+ 		return -ENOBUFS;
+@@ -6218,7 +6221,7 @@
+ 	if (!msg)
+ 		return -ENOMEM;
+ 
+-	if (nl80211_send_mpath(msg, info->snd_portid, info->snd_seq, 0,
++	if (nl80211_send_mpath(msg, genl_info_snd_portid(info), info->snd_seq, 0,
+ 			       dev, dst, mpp, &pinfo) < 0) {
+ 		nlmsg_free(msg);
+ 		return -ENOBUFS;
+@@ -6261,7 +6264,7 @@
+ 		if (err)
+ 			goto out_err;
+ 
+-		if (nl80211_send_mpath(skb, NETLINK_CB(cb->skb).portid,
++		if (nl80211_send_mpath(skb, NETLINK_CB_PORTID(cb->skb),
+ 				       cb->nlh->nlmsg_seq, NLM_F_MULTI,
+ 				       wdev->netdev, dst, mpp,
+ 				       &pinfo) < 0)
+@@ -6385,7 +6388,7 @@
+ 		return regulatory_hint_user(data, user_reg_hint_type);
+ 	case NL80211_USER_REG_HINT_INDOOR:
+ 		if (info->attrs[NL80211_ATTR_SOCKET_OWNER]) {
+-			owner_nlportid = info->snd_portid;
++			owner_nlportid = genl_info_snd_portid(info);
+ 			is_indoor = !!info->attrs[NL80211_ATTR_REG_INDOOR];
+ 		} else {
+ 			owner_nlportid = 0;
+@@ -6436,7 +6439,8 @@
+ 	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+ 	if (!msg)
+ 		return -ENOMEM;
+-	hdr = nl80211hdr_put(msg, info->snd_portid, info->snd_seq, 0,
++	hdr = nl80211hdr_put(msg, genl_info_snd_portid(info), info->snd_seq,
++			     0,
+ 			     NL80211_CMD_GET_MESH_CONFIG);
+ 	if (!hdr)
+ 		goto out;
+@@ -6593,7 +6597,7 @@
+ 
+ 	if (!info->attrs[NL80211_ATTR_MESH_CONFIG])
+ 		return -EINVAL;
+-	if (nla_parse_nested_deprecated(tb, NL80211_MESHCONF_ATTR_MAX, info->attrs[NL80211_ATTR_MESH_CONFIG], nl80211_meshconf_params_policy, info->extack))
++	if (nla_parse_nested_deprecated(tb, NL80211_MESHCONF_ATTR_MAX, info->attrs[NL80211_ATTR_MESH_CONFIG], nl80211_meshconf_params_policy, genl_info_extack(info)))
+ 		return -EINVAL;
+ 
+ 	/* This makes sure that there aren't more than 32 mesh config
+@@ -6726,7 +6730,7 @@
+ 
+ 	if (!info->attrs[NL80211_ATTR_MESH_SETUP])
+ 		return -EINVAL;
+-	if (nla_parse_nested_deprecated(tb, NL80211_MESH_SETUP_ATTR_MAX, info->attrs[NL80211_ATTR_MESH_SETUP], nl80211_mesh_setup_params_policy, info->extack))
++	if (nla_parse_nested_deprecated(tb, NL80211_MESH_SETUP_ATTR_MAX, info->attrs[NL80211_ATTR_MESH_SETUP], nl80211_mesh_setup_params_policy, genl_info_extack(info)))
+ 		return -EINVAL;
+ 
+ 	if (tb[NL80211_MESH_SETUP_ENABLE_VENDOR_SYNC])
+@@ -6877,7 +6881,8 @@
+ 	if (!msg)
+ 		return -ENOBUFS;
+ 
+-	hdr = nl80211hdr_put(msg, info->snd_portid, info->snd_seq, 0,
++	hdr = nl80211hdr_put(msg, genl_info_snd_portid(info), info->snd_seq,
++			     0,
+ 			     NL80211_CMD_GET_REG);
+ 	if (!hdr)
+ 		goto put_failure;
+@@ -6937,7 +6942,8 @@
+ 			       u32 seq, int flags, struct wiphy *wiphy,
+ 			       const struct ieee80211_regdomain *regdom)
+ {
+-	void *hdr = nl80211hdr_put(msg, NETLINK_CB(cb->skb).portid, seq, flags,
++	void *hdr = nl80211hdr_put(msg, NETLINK_CB_PORTID(cb->skb), seq,
++				   flags,
+ 				   NL80211_CMD_GET_REG);
+ 
+ 	if (!hdr)
+@@ -7011,7 +7017,7 @@
+ 	return err;
+ }
+ 
+-#ifdef CONFIG_CFG80211_CRDA_SUPPORT
++#ifdef CPTCFG_CFG80211_CRDA_SUPPORT
+ static const struct nla_policy reg_rule_policy[NL80211_REG_RULE_ATTR_MAX + 1] = {
+ 	[NL80211_ATTR_REG_RULE_FLAGS]		= { .type = NLA_U32 },
+ 	[NL80211_ATTR_FREQ_RANGE_START]		= { .type = NLA_U32 },
+@@ -7112,7 +7118,7 @@
+ 			    rem_reg_rules) {
+ 		r = nla_parse_nested_deprecated(tb, NL80211_REG_RULE_ATTR_MAX,
+ 						nl_reg_rule, reg_rule_policy,
+-						info->extack);
++						genl_info_extack(info));
+ 		if (r)
+ 			goto bad_reg;
+ 		r = parse_reg_rule(tb, &rd->reg_rules[rule_idx]);
+@@ -7133,7 +7139,7 @@
+ 	kfree(rd);
+ 	return r;
+ }
+-#endif /* CONFIG_CFG80211_CRDA_SUPPORT */
++#endif /* CPTCFG_CFG80211_CRDA_SUPPORT */
+ 
+ static int validate_scan_freqs(struct nlattr *freqs)
+ {
+@@ -8154,7 +8160,7 @@
+ 	sched_scan_req->wiphy = &rdev->wiphy;
+ 
+ 	if (info->attrs[NL80211_ATTR_SOCKET_OWNER])
+-		sched_scan_req->owner_nlportid = info->snd_portid;
++		sched_scan_req->owner_nlportid = genl_info_snd_portid(info);
+ 
+ 	cfg80211_add_sched_scan_req(rdev, sched_scan_req);
+ 
+@@ -8187,7 +8193,7 @@
+ 				     list);
+ 	if (!req || req->reqid ||
+ 	    (req->owner_nlportid &&
+-	     req->owner_nlportid != info->snd_portid))
++	     req->owner_nlportid != genl_info_snd_portid(info)))
+ 		return -ENOENT;
+ 
+ 	return cfg80211_stop_sched_scan_req(rdev, req, false);
+@@ -8380,7 +8386,8 @@
+ 
+ 	err = nla_parse_nested_deprecated(csa_attrs, NL80211_ATTR_MAX,
+ 					  info->attrs[NL80211_ATTR_CSA_IES],
+-					  nl80211_policy, info->extack);
++					  nl80211_policy,
++					  genl_info_extack(info));
+ 	if (err)
+ 		return err;
+ 
+@@ -8488,7 +8495,7 @@
+ 
+ 	ASSERT_WDEV_LOCK(wdev);
+ 
+-	hdr = nl80211hdr_put(msg, NETLINK_CB(cb->skb).portid, seq, flags,
++	hdr = nl80211hdr_put(msg, NETLINK_CB_PORTID(cb->skb), seq, flags,
+ 			     NL80211_CMD_NEW_SCAN_RESULTS);
+ 	if (!hdr)
+ 		return -1;
+@@ -8639,7 +8646,9 @@
+ 	if (start == 0)
+ 		cfg80211_bss_expire(rdev);
+ 
++#if LINUX_VERSION_IS_GEQ(3,1,0)
+ 	cb->seq = rdev->bss_generation;
++#endif
+ 
+ 	list_for_each_entry(scan, &rdev->bss_list, list) {
+ 		if (++idx <= start)
+@@ -8774,7 +8783,7 @@
+ 		}
+ 
+ 		if (nl80211_send_survey(skb,
+-				NETLINK_CB(cb->skb).portid,
++				NETLINK_CB_PORTID(cb->skb),
+ 				cb->nlh->nlmsg_seq, NLM_F_MULTI,
+ 				wdev->netdev, radio_stats, &survey) < 0)
+ 			goto out;
+@@ -9052,7 +9061,7 @@
+ 	int err, ssid_len = 0;
+ 
+ 	if (dev->ieee80211_ptr->conn_owner_nlportid &&
+-	    dev->ieee80211_ptr->conn_owner_nlportid != info->snd_portid)
++	    dev->ieee80211_ptr->conn_owner_nlportid != genl_info_snd_portid(info))
+ 		return -EPERM;
+ 
+ 	if (!info->attrs[NL80211_ATTR_MAC] ||
+@@ -9154,7 +9163,7 @@
+ 
+ 		if (!err && info->attrs[NL80211_ATTR_SOCKET_OWNER]) {
+ 			dev->ieee80211_ptr->conn_owner_nlportid =
+-				info->snd_portid;
++				genl_info_snd_portid(info);
+ 			memcpy(dev->ieee80211_ptr->disconnect_bssid,
+ 			       bssid, ETH_ALEN);
+ 		}
+@@ -9175,7 +9184,7 @@
+ 	bool local_state_change;
+ 
+ 	if (dev->ieee80211_ptr->conn_owner_nlportid &&
+-	    dev->ieee80211_ptr->conn_owner_nlportid != info->snd_portid)
++	    dev->ieee80211_ptr->conn_owner_nlportid != genl_info_snd_portid(info))
+ 		return -EPERM;
+ 
+ 	if (!info->attrs[NL80211_ATTR_MAC])
+@@ -9223,7 +9232,7 @@
+ 	bool local_state_change;
+ 
+ 	if (dev->ieee80211_ptr->conn_owner_nlportid &&
+-	    dev->ieee80211_ptr->conn_owner_nlportid != info->snd_portid)
++	    dev->ieee80211_ptr->conn_owner_nlportid != genl_info_snd_portid(info))
+ 		return -EPERM;
+ 
+ 	if (!info->attrs[NL80211_ATTR_MAC])
+@@ -9439,7 +9448,7 @@
+ 	if (err)
+ 		kzfree(connkeys);
+ 	else if (info->attrs[NL80211_ATTR_SOCKET_OWNER])
+-		dev->ieee80211_ptr->conn_owner_nlportid = info->snd_portid;
++		dev->ieee80211_ptr->conn_owner_nlportid = genl_info_snd_portid(info);
+ 	wdev_unlock(dev->ieee80211_ptr);
+ 
+ 	return err;
+@@ -9608,7 +9617,7 @@
+ }
+ EXPORT_SYMBOL(__cfg80211_send_event_skb);
+ 
+-#ifdef CONFIG_NL80211_TESTMODE
++#ifdef CPTCFG_NL80211_TESTMODE
+ static int nl80211_testmode_do(struct sk_buff *skb, struct genl_info *info)
+ {
+ 	struct cfg80211_registered_device *rdev = info->user_ptr[0];
+@@ -9695,7 +9704,7 @@
+ 	}
+ 
+ 	while (1) {
+-		void *hdr = nl80211hdr_put(skb, NETLINK_CB(cb->skb).portid,
++		void *hdr = nl80211hdr_put(skb, NETLINK_CB_PORTID(cb->skb),
+ 					   cb->nlh->nlmsg_seq, NLM_F_MULTI,
+ 					   NL80211_CMD_TESTMODE);
+ 		struct nlattr *tmdata;
+@@ -9947,7 +9956,7 @@
+ 		kzfree(connkeys);
+ 
+ 	if (!err && info->attrs[NL80211_ATTR_SOCKET_OWNER]) {
+-		dev->ieee80211_ptr->conn_owner_nlportid = info->snd_portid;
++		dev->ieee80211_ptr->conn_owner_nlportid = genl_info_snd_portid(info);
+ 		if (connect.bssid)
+ 			memcpy(dev->ieee80211_ptr->disconnect_bssid,
+ 			       connect.bssid, ETH_ALEN);
+@@ -10050,7 +10059,7 @@
+ 	int ret;
+ 
+ 	if (dev->ieee80211_ptr->conn_owner_nlportid &&
+-	    dev->ieee80211_ptr->conn_owner_nlportid != info->snd_portid)
++	    dev->ieee80211_ptr->conn_owner_nlportid != genl_info_snd_portid(info))
+ 		return -EPERM;
+ 
+ 	if (!info->attrs[NL80211_ATTR_REASON_CODE])
+@@ -10284,7 +10293,8 @@
+ 	if (!msg)
+ 		return -ENOMEM;
+ 
+-	hdr = nl80211hdr_put(msg, info->snd_portid, info->snd_seq, 0,
++	hdr = nl80211hdr_put(msg, genl_info_snd_portid(info), info->snd_seq,
++			     0,
+ 			     NL80211_CMD_REMAIN_ON_CHANNEL);
+ 	if (!hdr) {
+ 		err = -ENOBUFS;
+@@ -10379,9 +10389,10 @@
+ 	if (!rdev->ops->mgmt_tx)
+ 		return -EOPNOTSUPP;
+ 
+-	return cfg80211_mlme_register_mgmt(wdev, info->snd_portid, frame_type,
+-			nla_data(info->attrs[NL80211_ATTR_FRAME_MATCH]),
+-			nla_len(info->attrs[NL80211_ATTR_FRAME_MATCH]));
++	return cfg80211_mlme_register_mgmt(wdev, genl_info_snd_portid(info),
++					   frame_type,
++					   nla_data(info->attrs[NL80211_ATTR_FRAME_MATCH]),
++					   nla_len(info->attrs[NL80211_ATTR_FRAME_MATCH]));
+ }
+ 
+ static int nl80211_tx_mgmt(struct sk_buff *skb, struct genl_info *info)
+@@ -10488,7 +10499,8 @@
+ 		if (!msg)
+ 			return -ENOMEM;
+ 
+-		hdr = nl80211hdr_put(msg, info->snd_portid, info->snd_seq, 0,
++		hdr = nl80211hdr_put(msg, genl_info_snd_portid(info),
++				     info->snd_seq, 0,
+ 				     NL80211_CMD_FRAME);
+ 		if (!hdr) {
+ 			err = -ENOBUFS;
+@@ -10599,7 +10611,8 @@
+ 	if (!msg)
+ 		return -ENOMEM;
+ 
+-	hdr = nl80211hdr_put(msg, info->snd_portid, info->snd_seq, 0,
++	hdr = nl80211hdr_put(msg, genl_info_snd_portid(info), info->snd_seq,
++			     0,
+ 			     NL80211_CMD_GET_POWER_SAVE);
+ 	if (!hdr) {
+ 		err = -ENOBUFS;
+@@ -10797,7 +10810,7 @@
+ 
+ 	err = nla_parse_nested_deprecated(attrs, NL80211_ATTR_CQM_MAX, cqm,
+ 					  nl80211_attr_cqm_policy,
+-					  info->extack);
++					  genl_info_extack(info));
+ 	if (err)
+ 		return err;
+ 
+@@ -10964,7 +10977,7 @@
+ 	wdev_lock(dev->ieee80211_ptr);
+ 	err = __cfg80211_join_mesh(rdev, dev, &setup, &cfg);
+ 	if (!err && info->attrs[NL80211_ATTR_SOCKET_OWNER])
+-		dev->ieee80211_ptr->conn_owner_nlportid = info->snd_portid;
++		dev->ieee80211_ptr->conn_owner_nlportid = genl_info_snd_portid(info);
+ 	wdev_unlock(dev->ieee80211_ptr);
+ 
+ 	return err;
+@@ -11168,7 +11181,8 @@
+ 	if (!msg)
+ 		return -ENOMEM;
+ 
+-	hdr = nl80211hdr_put(msg, info->snd_portid, info->snd_seq, 0,
++	hdr = nl80211hdr_put(msg, genl_info_snd_portid(info), info->snd_seq,
++			     0,
+ 			     NL80211_CMD_GET_WOWLAN);
+ 	if (!hdr)
+ 		goto nla_put_failure;
+@@ -11419,7 +11433,8 @@
+ 
+ 	err = nla_parse_nested_deprecated(tb, MAX_NL80211_WOWLAN_TRIG,
+ 					  info->attrs[NL80211_ATTR_WOWLAN_TRIGGERS],
+-					  nl80211_wowlan_policy, info->extack);
++					  nl80211_wowlan_policy,
++					  genl_info_extack(info));
+ 	if (err)
+ 		return err;
+ 
+@@ -11505,7 +11520,7 @@
+ 							  MAX_NL80211_PKTPAT,
+ 							  pat,
+ 							  nl80211_packet_pattern_policy,
+-							  info->extack);
++							  genl_info_extack(info));
+ 			if (err)
+ 				goto error;
+ 
+@@ -11672,7 +11687,8 @@
+ 	if (!msg)
+ 		return -ENOMEM;
+ 
+-	hdr = nl80211hdr_put(msg, info->snd_portid, info->snd_seq, 0,
++	hdr = nl80211hdr_put(msg, genl_info_snd_portid(info), info->snd_seq,
++			     0,
+ 			     NL80211_CMD_GET_COALESCE);
+ 	if (!hdr)
+ 		goto nla_put_failure;
+@@ -11881,7 +11897,8 @@
+ 
+ 	err = nla_parse_nested_deprecated(tb, MAX_NL80211_REKEY_DATA,
+ 					  info->attrs[NL80211_ATTR_REKEY_DATA],
+-					  nl80211_rekey_policy, info->extack);
++					  nl80211_rekey_policy,
++					  genl_info_extack(info));
+ 	if (err)
+ 		return err;
+ 
+@@ -11929,7 +11946,7 @@
+ 	if (wdev->ap_unexpected_nlportid)
+ 		return -EBUSY;
+ 
+-	wdev->ap_unexpected_nlportid = info->snd_portid;
++	wdev->ap_unexpected_nlportid = genl_info_snd_portid(info);
+ 	return 0;
+ }
+ 
+@@ -11959,7 +11976,8 @@
+ 	if (!msg)
+ 		return -ENOMEM;
+ 
+-	hdr = nl80211hdr_put(msg, info->snd_portid, info->snd_seq, 0,
++	hdr = nl80211hdr_put(msg, genl_info_snd_portid(info), info->snd_seq,
++			     0,
+ 			     NL80211_CMD_PROBE_CLIENT);
+ 	if (!hdr) {
+ 		err = -ENOBUFS;
+@@ -12003,13 +12021,13 @@
+ 	/* First, check if already registered. */
+ 	spin_lock_bh(&rdev->beacon_registrations_lock);
+ 	list_for_each_entry(reg, &rdev->beacon_registrations, list) {
+-		if (reg->nlportid == info->snd_portid) {
++		if (reg->nlportid == genl_info_snd_portid(info)) {
+ 			rv = -EALREADY;
+ 			goto out_err;
+ 		}
+ 	}
+ 	/* Add it to the list */
+-	nreg->nlportid = info->snd_portid;
++	nreg->nlportid = genl_info_snd_portid(info);
+ 	list_add(&nreg->list, &rdev->beacon_registrations);
+ 
+ 	spin_unlock_bh(&rdev->beacon_registrations_lock);
+@@ -12196,7 +12214,7 @@
+ 	err = nla_parse_nested_deprecated(tb, NL80211_NAN_FUNC_ATTR_MAX,
+ 					  info->attrs[NL80211_ATTR_NAN_FUNC],
+ 					  nl80211_nan_func_policy,
+-					  info->extack);
++					  genl_info_extack(info));
+ 	if (err)
+ 		return err;
+ 
+@@ -12296,7 +12314,7 @@
+ 						  NL80211_NAN_SRF_ATTR_MAX,
+ 						  tb[NL80211_NAN_FUNC_SRF],
+ 						  nl80211_nan_srf_policy,
+-						  info->extack);
++						  genl_info_extack(info));
+ 		if (err)
+ 			goto out;
+ 
+@@ -12373,7 +12391,8 @@
+ 		goto out;
+ 	}
+ 
+-	hdr = nl80211hdr_put(msg, info->snd_portid, info->snd_seq, 0,
++	hdr = nl80211hdr_put(msg, genl_info_snd_portid(info), info->snd_seq,
++			     0,
+ 			     NL80211_CMD_ADD_NAN_FUNCTION);
+ 	/* This can't really happen - we just allocated 4KB */
+ 	if (WARN_ON(!hdr)) {
+@@ -12627,7 +12646,8 @@
+ 	if (!msg)
+ 		return -ENOMEM;
+ 
+-	hdr = nl80211hdr_put(msg, info->snd_portid, info->snd_seq, 0,
++	hdr = nl80211hdr_put(msg, genl_info_snd_portid(info), info->snd_seq,
++			     0,
+ 			     NL80211_CMD_GET_PROTOCOL_FEATURES);
+ 	if (!hdr)
+ 		goto nla_put_failure;
+@@ -12702,7 +12722,7 @@
+ 
+ 	ret = rdev_crit_proto_start(rdev, wdev, proto, duration);
+ 	if (!ret)
+-		rdev->crit_proto_nlportid = info->snd_portid;
++		rdev->crit_proto_nlportid = genl_info_snd_portid(info);
+ 
+ 	return ret;
+ }
+@@ -12807,7 +12827,7 @@
+ 
+ 			err = nl80211_vendor_check_policy(vcmd,
+ 					info->attrs[NL80211_ATTR_VENDOR_DATA],
+-					info->extack);
++					genl_info_extack(info));
+ 			if (err)
+ 				return err;
+ 		}
+@@ -12904,7 +12924,7 @@
+ 		err = nl80211_vendor_check_policy(
+ 				&(*rdev)->wiphy.vendor_commands[vcmd_idx],
+ 				attrbuf[NL80211_ATTR_VENDOR_DATA],
+-				cb->extack);
++				genl_callback_extack(cb));
+ 		if (err)
+ 			return err;
+ 	}
+@@ -12964,7 +12984,7 @@
+ 	}
+ 
+ 	while (1) {
+-		void *hdr = nl80211hdr_put(skb, NETLINK_CB(cb->skb).portid,
++		void *hdr = nl80211hdr_put(skb, NETLINK_CB_PORTID(cb->skb),
+ 					   cb->nlh->nlmsg_seq, NLM_F_MULTI,
+ 					   NL80211_CMD_VENDOR);
+ 		if (!hdr)
+@@ -13017,7 +13037,7 @@
+ 		return NULL;
+ 
+ 	return __cfg80211_alloc_vendor_skb(rdev, NULL, approxlen,
+-					   rdev->cur_cmd_info->snd_portid,
++					   genl_info_snd_portid(rdev->cur_cmd_info),
+ 					   rdev->cur_cmd_info->snd_seq,
+ 					   cmd, attr, NULL, GFP_KERNEL);
+ }
+@@ -13050,7 +13070,7 @@
+ 	if (WARN_ON(!rdev->cur_cmd_info))
+ 		return 0;
+ 
+-	return rdev->cur_cmd_info->snd_portid;
++	return genl_info_snd_portid(rdev->cur_cmd_info);
+ }
+ EXPORT_SYMBOL_GPL(cfg80211_vendor_cmd_get_sender);
+ 
+@@ -13515,7 +13535,8 @@
+ 	if (!msg)
+ 		return -ENOMEM;
+ 
+-	hdr = nl80211hdr_put(msg, info->snd_portid, info->snd_seq, 0,
++	hdr = nl80211hdr_put(msg, genl_info_snd_portid(info), info->snd_seq,
++			     0,
+ 			     NL80211_CMD_GET_FTM_RESPONDER_STATS);
+ 	if (!hdr)
+ 		return -ENOBUFS;
+@@ -13638,7 +13659,8 @@
+ 					 NL80211_FLAG_CHECK_NETDEV_UP)
+ #define NL80211_FLAG_CLEAR_SKB		0x20
+ 
+-static int nl80211_pre_doit(const struct genl_ops *ops, struct sk_buff *skb,
++static int nl80211_pre_doit(__genl_const struct genl_ops *ops,
++			    struct sk_buff *skb,
+ 			    struct genl_info *info)
+ {
+ 	struct cfg80211_registered_device *rdev;
+@@ -13700,7 +13722,8 @@
+ 	return 0;
+ }
+ 
+-static void nl80211_post_doit(const struct genl_ops *ops, struct sk_buff *skb,
++static void nl80211_post_doit(__genl_const struct genl_ops *ops,
++			      struct sk_buff *skb,
+ 			      struct genl_info *info)
+ {
+ 	if (info->user_ptr[1]) {
+@@ -13729,7 +13752,7 @@
+ 	}
+ }
+ 
+-static const struct genl_ops nl80211_ops[] = {
++static __genl_const struct genl_ops nl80211_ops[] = {
+ 	{
+ 		.cmd = NL80211_CMD_GET_WIPHY,
+ 		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
+@@ -13928,7 +13951,7 @@
+ 		.internal_flags = NL80211_FLAG_NEED_RTNL,
+ 		/* can be retrieved by unprivileged users */
+ 	},
+-#ifdef CONFIG_CFG80211_CRDA_SUPPORT
++#ifdef CPTCFG_CFG80211_CRDA_SUPPORT
+ 	{
+ 		.cmd = NL80211_CMD_SET_REG,
+ 		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
+@@ -14052,7 +14075,7 @@
+ 		.internal_flags = NL80211_FLAG_NEED_NETDEV_UP |
+ 				  NL80211_FLAG_NEED_RTNL,
+ 	},
+-#ifdef CONFIG_NL80211_TESTMODE
++#ifdef CPTCFG_NL80211_TESTMODE
+ 	{
+ 		.cmd = NL80211_CMD_TESTMODE,
+ 		.validate = GENL_DONT_VALIDATE_STRICT | GENL_DONT_VALIDATE_DUMP,
+@@ -14582,7 +14605,7 @@
+ 	},
+ };
+ 
+-static struct genl_family nl80211_fam __ro_after_init = {
++static struct genl_family nl80211_fam __genl_ro_after_init = {
+ 	.name = NL80211_GENL_NAME,	/* have users key off the name instead */
+ 	.hdrsize = 0,			/* no private header */
+ 	.version = 1,			/* no particular meaning now */
+@@ -16575,29 +16598,31 @@
+ 		list_for_each_entry_rcu(sched_scan_req,
+ 					&rdev->sched_scan_req_list,
+ 					list) {
+-			if (sched_scan_req->owner_nlportid == notify->portid) {
++			if (sched_scan_req->owner_nlportid == netlink_notify_portid(notify)) {
+ 				sched_scan_req->nl_owner_dead = true;
+ 				schedule_work(&rdev->sched_scan_stop_wk);
+ 			}
+ 		}
+ 
+ 		list_for_each_entry_rcu(wdev, &rdev->wiphy.wdev_list, list) {
+-			cfg80211_mlme_unregister_socket(wdev, notify->portid);
++			cfg80211_mlme_unregister_socket(wdev,
++							netlink_notify_portid(notify));
+ 
+-			if (wdev->owner_nlportid == notify->portid) {
++			if (wdev->owner_nlportid == netlink_notify_portid(notify)) {
+ 				wdev->nl_owner_dead = true;
+ 				schedule_work(&rdev->destroy_work);
+-			} else if (wdev->conn_owner_nlportid == notify->portid) {
++			} else if (wdev->conn_owner_nlportid == netlink_notify_portid(notify)) {
+ 				schedule_work(&wdev->disconnect_wk);
+ 			}
+ 
+-			cfg80211_release_pmsr(wdev, notify->portid);
++			cfg80211_release_pmsr(wdev,
++					      netlink_notify_portid(notify));
+ 		}
+ 
+ 		spin_lock_bh(&rdev->beacon_registrations_lock);
+ 		list_for_each_entry_safe(reg, tmp, &rdev->beacon_registrations,
+ 					 list) {
+-			if (reg->nlportid == notify->portid) {
++			if (reg->nlportid == netlink_notify_portid(notify)) {
+ 				list_del(&reg->list);
+ 				kfree(reg);
+ 				break;
+@@ -16612,7 +16637,7 @@
+ 	 * It is possible that the user space process that is controlling the
+ 	 * indoor setting disappeared, so notify the regulatory core.
+ 	 */
+-	regulatory_netlink_notify(notify->portid);
++	regulatory_netlink_notify(netlink_notify_portid(notify));
+ 	return NOTIFY_OK;
+ }
+ 
+diff -ruN linux-5.3.6/net/wireless/pmsr.c linux-5.3.6-wireless/net/wireless/pmsr.c
+--- linux-5.3.6/net/wireless/pmsr.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/pmsr.c	2023-10-15 22:29:12.520000000 +0300
+@@ -20,7 +20,8 @@
+ 
+ 	/* validate existing data */
+ 	if (!(rdev->wiphy.pmsr_capa->ftm.bandwidths & BIT(out->chandef.width))) {
+-		NL_SET_ERR_MSG(info->extack, "FTM: unsupported bandwidth");
++		NL_SET_ERR_MSG(genl_info_extack(info),
++			       "FTM: unsupported bandwidth");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -40,14 +41,14 @@
+ 		break;
+ 	default:
+ 		if (!tb[NL80211_PMSR_FTM_REQ_ATTR_PREAMBLE]) {
+-			NL_SET_ERR_MSG(info->extack,
++			NL_SET_ERR_MSG(genl_info_extack(info),
+ 				       "FTM: must specify preamble");
+ 			return -EINVAL;
+ 		}
+ 	}
+ 
+ 	if (!(capa->ftm.preambles & BIT(preamble))) {
+-		NL_SET_ERR_MSG_ATTR(info->extack,
++		NL_SET_ERR_MSG_ATTR(genl_info_extack(info),
+ 				    tb[NL80211_PMSR_FTM_REQ_ATTR_PREAMBLE],
+ 				    "FTM: invalid preamble");
+ 		return -EINVAL;
+@@ -62,14 +63,14 @@
+ 
+ 	out->ftm.asap = !!tb[NL80211_PMSR_FTM_REQ_ATTR_ASAP];
+ 	if (out->ftm.asap && !capa->ftm.asap) {
+-		NL_SET_ERR_MSG_ATTR(info->extack,
++		NL_SET_ERR_MSG_ATTR(genl_info_extack(info),
+ 				    tb[NL80211_PMSR_FTM_REQ_ATTR_ASAP],
+ 				    "FTM: ASAP mode not supported");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (!out->ftm.asap && !capa->ftm.non_asap) {
+-		NL_SET_ERR_MSG(info->extack,
++		NL_SET_ERR_MSG(genl_info_extack(info),
+ 			       "FTM: non-ASAP mode not supported");
+ 		return -EINVAL;
+ 	}
+@@ -81,7 +82,7 @@
+ 
+ 	if (capa->ftm.max_bursts_exponent >= 0 &&
+ 	    out->ftm.num_bursts_exp > capa->ftm.max_bursts_exponent) {
+-		NL_SET_ERR_MSG_ATTR(info->extack,
++		NL_SET_ERR_MSG_ATTR(genl_info_extack(info),
+ 				    tb[NL80211_PMSR_FTM_REQ_ATTR_NUM_BURSTS_EXP],
+ 				    "FTM: max NUM_BURSTS_EXP must be set lower than the device limit");
+ 		return -EINVAL;
+@@ -100,7 +101,7 @@
+ 	if (capa->ftm.max_ftms_per_burst &&
+ 	    (out->ftm.ftms_per_burst > capa->ftm.max_ftms_per_burst ||
+ 	     out->ftm.ftms_per_burst == 0)) {
+-		NL_SET_ERR_MSG_ATTR(info->extack,
++		NL_SET_ERR_MSG_ATTR(genl_info_extack(info),
+ 				    tb[NL80211_PMSR_FTM_REQ_ATTR_FTMS_PER_BURST],
+ 				    "FTM: FTMs per burst must be set lower than the device limit but non-zero");
+ 		return -EINVAL;
+@@ -113,7 +114,7 @@
+ 
+ 	out->ftm.request_lci = !!tb[NL80211_PMSR_FTM_REQ_ATTR_REQUEST_LCI];
+ 	if (out->ftm.request_lci && !capa->ftm.request_lci) {
+-		NL_SET_ERR_MSG_ATTR(info->extack,
++		NL_SET_ERR_MSG_ATTR(genl_info_extack(info),
+ 				    tb[NL80211_PMSR_FTM_REQ_ATTR_REQUEST_LCI],
+ 				    "FTM: LCI request not supported");
+ 	}
+@@ -121,7 +122,7 @@
+ 	out->ftm.request_civicloc =
+ 		!!tb[NL80211_PMSR_FTM_REQ_ATTR_REQUEST_CIVICLOC];
+ 	if (out->ftm.request_civicloc && !capa->ftm.request_civicloc) {
+-		NL_SET_ERR_MSG_ATTR(info->extack,
++		NL_SET_ERR_MSG_ATTR(genl_info_extack(info),
+ 				    tb[NL80211_PMSR_FTM_REQ_ATTR_REQUEST_CIVICLOC],
+ 			    "FTM: civic location request not supported");
+ 	}
+@@ -146,7 +147,7 @@
+ 	if (!tb[NL80211_PMSR_PEER_ATTR_ADDR] ||
+ 	    !tb[NL80211_PMSR_PEER_ATTR_CHAN] ||
+ 	    !tb[NL80211_PMSR_PEER_ATTR_REQ]) {
+-		NL_SET_ERR_MSG_ATTR(info->extack, peer,
++		NL_SET_ERR_MSG_ATTR(genl_info_extack(info), peer,
+ 				    "insufficient peer data");
+ 		return -EINVAL;
+ 	}
+@@ -158,7 +159,8 @@
+ 	/* need to validate here, we don't want to have validation recursion */
+ 	err = nla_parse_nested_deprecated(info->attrs, NL80211_ATTR_MAX,
+ 					  tb[NL80211_PMSR_PEER_ATTR_CHAN],
+-					  nl80211_policy, info->extack);
++					  nl80211_policy,
++					  genl_info_extack(info));
+ 	if (err)
+ 		return err;
+ 
+@@ -172,7 +174,7 @@
+ 				    NULL);
+ 
+ 	if (!req[NL80211_PMSR_REQ_ATTR_DATA]) {
+-		NL_SET_ERR_MSG_ATTR(info->extack,
++		NL_SET_ERR_MSG_ATTR(genl_info_extack(info),
+ 				    tb[NL80211_PMSR_PEER_ATTR_REQ],
+ 				    "missing request type/data");
+ 		return -EINVAL;
+@@ -182,7 +184,7 @@
+ 		out->report_ap_tsf = true;
+ 
+ 	if (out->report_ap_tsf && !rdev->wiphy.pmsr_capa->report_ap_tsf) {
+-		NL_SET_ERR_MSG_ATTR(info->extack,
++		NL_SET_ERR_MSG_ATTR(genl_info_extack(info),
+ 				    req[NL80211_PMSR_REQ_ATTR_GET_AP_TSF],
+ 				    "reporting AP TSF is not supported");
+ 		return -EINVAL;
+@@ -194,7 +196,7 @@
+ 			err = pmsr_parse_ftm(rdev, treq, out, info);
+ 			break;
+ 		default:
+-			NL_SET_ERR_MSG_ATTR(info->extack, treq,
++			NL_SET_ERR_MSG_ATTR(genl_info_extack(info), treq,
+ 					    "unsupported measurement type");
+ 			err = -EINVAL;
+ 		}
+@@ -231,7 +233,7 @@
+ 		count++;
+ 
+ 		if (count > rdev->wiphy.pmsr_capa->max_peers) {
+-			NL_SET_ERR_MSG_ATTR(info->extack, peer,
++			NL_SET_ERR_MSG_ATTR(genl_info_extack(info), peer,
+ 					    "Too many peers used");
+ 			return -EINVAL;
+ 		}
+@@ -246,7 +248,7 @@
+ 
+ 	if (info->attrs[NL80211_ATTR_MAC]) {
+ 		if (!rdev->wiphy.pmsr_capa->randomize_mac_addr) {
+-			NL_SET_ERR_MSG_ATTR(info->extack,
++			NL_SET_ERR_MSG_ATTR(genl_info_extack(info),
+ 					    info->attrs[NL80211_ATTR_MAC],
+ 					    "device cannot randomize MAC address");
+ 			err = -EINVAL;
+@@ -273,7 +275,7 @@
+ 
+ 	req->n_peers = count;
+ 	req->cookie = cfg80211_assign_cookie(rdev);
+-	req->nl_portid = info->snd_portid;
++	req->nl_portid = genl_info_snd_portid(info);
+ 
+ 	err = rdev_start_pmsr(rdev, wdev, req);
+ 	if (err)
+@@ -281,7 +283,7 @@
+ 
+ 	list_add_tail(&req->list, &wdev->pmsr_list);
+ 
+-	nl_set_extack_cookie_u64(info->extack, req->cookie);
++	nl_set_extack_cookie_u64(genl_info_extack(info), req->cookie);
+ 	return 0;
+ out_err:
+ 	kfree(req);
+diff -ruN linux-5.3.6/net/wireless/rdev-ops.h linux-5.3.6-wireless/net/wireless/rdev-ops.h
+--- linux-5.3.6/net/wireless/rdev-ops.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/rdev-ops.h	2023-10-15 22:29:12.532000000 +0300
+@@ -607,7 +607,7 @@
+ }
+ 
+ 
+-#ifdef CONFIG_NL80211_TESTMODE
++#ifdef CPTCFG_NL80211_TESTMODE
+ static inline int rdev_testmode_cmd(struct cfg80211_registered_device *rdev,
+ 				    struct wireless_dev *wdev,
+ 				    void *data, int len)
+diff -ruN linux-5.3.6/net/wireless/reg.c linux-5.3.6-wireless/net/wireless/reg.c
+--- linux-5.3.6/net/wireless/reg.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/reg.c	2023-10-15 22:29:12.544000000 +0300
+@@ -503,7 +503,7 @@
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_CFG80211_CRDA_SUPPORT
++#ifdef CPTCFG_CFG80211_CRDA_SUPPORT
+ /* Max number of consecutive attempts to communicate with CRDA  */
+ #define REG_MAX_CRDA_TIMEOUTS 10
+ 
+@@ -576,7 +576,7 @@
+ {
+ 	return -ENODATA;
+ }
+-#endif /* CONFIG_CFG80211_CRDA_SUPPORT */
++#endif /* CPTCFG_CFG80211_CRDA_SUPPORT */
+ 
+ /* code to directly load a firmware database through request_firmware */
+ static const struct fwdb_header *regdb;
+@@ -716,7 +716,7 @@
+ 	return true;
+ }
+ 
+-#ifdef CONFIG_CFG80211_REQUIRE_SIGNED_REGDB
++#ifdef CPTCFG_CFG80211_REQUIRE_SIGNED_REGDB
+ static struct key *builtin_regdb_keys;
+ 
+ static void __init load_keys_from_buffer(const u8 *p, unsigned int buflen)
+@@ -776,11 +776,11 @@
+ 
+ 	pr_notice("Loading compiled-in X.509 certificates for regulatory database\n");
+ 
+-#ifdef CONFIG_CFG80211_USE_KERNEL_REGDB_KEYS
++#ifdef CPTCFG_CFG80211_USE_KERNEL_REGDB_KEYS
+ 	load_keys_from_buffer(shipped_regdb_certs, shipped_regdb_certs_len);
+ #endif
+-#ifdef CONFIG_CFG80211_EXTRA_REGDB_KEYDIR
+-	if (CONFIG_CFG80211_EXTRA_REGDB_KEYDIR[0] != '\0')
++#ifdef CPTCFG_CFG80211_EXTRA_REGDB_KEYDIR
++	if (CPTCFG_CFG80211_EXTRA_REGDB_KEYDIR[0] != '\0')
+ 		load_keys_from_buffer(extra_regdb_certs, extra_regdb_certs_len);
+ #endif
+ 
+@@ -823,7 +823,7 @@
+ static void free_regdb_keyring(void)
+ {
+ }
+-#endif /* CONFIG_CFG80211_REQUIRE_SIGNED_REGDB */
++#endif /* CPTCFG_CFG80211_REQUIRE_SIGNED_REGDB */
+ 
+ static bool valid_regdb(const u8 *data, unsigned int size)
+ {
+@@ -1825,7 +1825,7 @@
+ 	return reg_request_cell_base(get_last_request());
+ }
+ 
+-#ifdef CONFIG_CFG80211_REG_CELLULAR_HINTS
++#ifdef CPTCFG_CFG80211_REG_CELLULAR_HINTS
+ /* Core specific check */
+ static enum reg_request_treatment
+ reg_ignore_cell_hint(struct regulatory_request *pending_request)
+diff -ruN linux-5.3.6/net/wireless/scan.c linux-5.3.6-wireless/net/wireless/scan.c
+--- linux-5.3.6/net/wireless/scan.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/scan.c	2023-10-15 22:29:12.552000000 +0300
+@@ -454,7 +454,7 @@
+ 	struct cfg80211_scan_request *request;
+ 	struct wireless_dev *wdev;
+ 	struct sk_buff *msg;
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	union iwreq_data wrqu;
+ #endif
+ 
+@@ -490,7 +490,7 @@
+ 
+ 	msg = nl80211_build_scan_msg(rdev, wdev, request->info.aborted);
+ 
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	if (wdev->netdev && !request->info.aborted) {
+ 		memset(&wrqu, 0, sizeof(wrqu));
+ 
+@@ -2000,7 +2000,7 @@
+ }
+ EXPORT_SYMBOL(cfg80211_bss_iter);
+ 
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ static struct cfg80211_registered_device *
+ cfg80211_get_dev_from_ifindex(struct net *net, int ifindex)
+ {
+diff -ruN linux-5.3.6/net/wireless/sme.c linux-5.3.6-wireless/net/wireless/sme.c
+--- linux-5.3.6/net/wireless/sme.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/sme.c	2023-10-15 22:29:12.552000000 +0300
+@@ -682,7 +682,7 @@
+ {
+ 	struct wireless_dev *wdev = dev->ieee80211_ptr;
+ 	const u8 *country_ie;
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	union iwreq_data wrqu;
+ #endif
+ 
+@@ -697,7 +697,7 @@
+ 	nl80211_send_connect_result(wiphy_to_rdev(wdev->wiphy), dev, cr,
+ 				    GFP_KERNEL);
+ 
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	if (wextev) {
+ 		if (cr->req_ie && cr->status == WLAN_STATUS_SUCCESS) {
+ 			memset(&wrqu, 0, sizeof(wrqu));
+@@ -899,7 +899,7 @@
+ void __cfg80211_roamed(struct wireless_dev *wdev,
+ 		       struct cfg80211_roam_info *info)
+ {
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	union iwreq_data wrqu;
+ #endif
+ 	ASSERT_WDEV_LOCK(wdev);
+@@ -924,7 +924,7 @@
+ 	nl80211_send_roamed(wiphy_to_rdev(wdev->wiphy),
+ 			    wdev->netdev, info, GFP_KERNEL);
+ 
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	if (info->req_ie) {
+ 		memset(&wrqu, 0, sizeof(wrqu));
+ 		wrqu.data.length = info->req_ie_len;
+@@ -1078,7 +1078,7 @@
+ 	struct wireless_dev *wdev = dev->ieee80211_ptr;
+ 	struct cfg80211_registered_device *rdev = wiphy_to_rdev(wdev->wiphy);
+ 	int i;
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	union iwreq_data wrqu;
+ #endif
+ 
+@@ -1117,7 +1117,7 @@
+ 
+ 	rdev_set_qos_map(rdev, dev, NULL);
+ 
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	memset(&wrqu, 0, sizeof(wrqu));
+ 	wrqu.ap_addr.sa_family = ARPHRD_ETHER;
+ 	wireless_send_event(dev, SIOCGIWAP, &wrqu, NULL);
+diff -ruN linux-5.3.6/net/wireless/sysfs.c linux-5.3.6-wireless/net/wireless/sysfs.c
+--- linux-5.3.6/net/wireless/sysfs.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/sysfs.c	2023-10-15 22:29:12.552000000 +0300
+@@ -72,7 +72,12 @@
+ 	&dev_attr_name.attr,
+ 	NULL,
+ };
++#if LINUX_VERSION_IS_GEQ(3,11,0)
+ ATTRIBUTE_GROUPS(ieee80211);
++#else
++#define BP_ATTR_GRP_STRUCT device_attribute
++ATTRIBUTE_GROUPS_BACKPORT(ieee80211);
++#endif
+ 
+ static void wiphy_dev_release(struct device *dev)
+ {
+@@ -156,7 +161,12 @@
+ 	.name = "ieee80211",
+ 	.owner = THIS_MODULE,
+ 	.dev_release = wiphy_dev_release,
++#if LINUX_VERSION_IS_GEQ(3,11,0)
+ 	.dev_groups = ieee80211_groups,
++#else
++	.dev_attrs = ieee80211_dev_attrs,
++#endif
++
+ 	.dev_uevent = wiphy_uevent,
+ 	.pm = WIPHY_PM_OPS,
+ 	.ns_type = &net_ns_type_operations,
+@@ -165,6 +175,7 @@
+ 
+ int wiphy_sysfs_init(void)
+ {
++	init_ieee80211_attrs();
+ 	return class_register(&ieee80211_class);
+ }
+ 
+diff -ruN linux-5.3.6/net/wireless/trace.c linux-5.3.6-wireless/net/wireless/trace.c
+--- linux-5.3.6/net/wireless/trace.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/trace.c	2023-10-15 22:29:12.560000000 +0300
+@@ -1,4 +1,7 @@
+ #include <linux/module.h>
++#if LINUX_VERSION_IS_LESS(3,1,0)
++#include <linux/interrupt.h>
++#endif
+ 
+ #ifndef __CHECKER__
+ #define CREATE_TRACE_POINTS
+diff -ruN linux-5.3.6/net/wireless/trace.h linux-5.3.6-wireless/net/wireless/trace.h
+--- linux-5.3.6/net/wireless/trace.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/trace.h	2023-10-15 22:29:12.560000000 +0300
+@@ -1514,7 +1514,7 @@
+ 		  WIPHY_PR_ARG, __entry->func_ret, __entry->func_fill)
+ );
+ 
+-#ifdef CONFIG_NL80211_TESTMODE
++#ifdef CPTCFG_NL80211_TESTMODE
+ TRACE_EVENT(rdev_testmode_cmd,
+ 	TP_PROTO(struct wiphy *wiphy, struct wireless_dev *wdev),
+ 	TP_ARGS(wiphy, wdev),
+@@ -1540,7 +1540,7 @@
+ 	),
+ 	TP_printk(WIPHY_PR_FMT, WIPHY_PR_ARG)
+ );
+-#endif /* CONFIG_NL80211_TESTMODE */
++#endif /* CPTCFG_NL80211_TESTMODE */
+ 
+ TRACE_EVENT(rdev_set_bitrate_mask,
+ 	TP_PROTO(struct wiphy *wiphy, struct net_device *netdev,
+diff -ruN linux-5.3.6/net/wireless/util.c linux-5.3.6-wireless/net/wireless/util.c
+--- linux-5.3.6/net/wireless/util.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/util.c	2023-10-15 22:29:12.568000000 +0300
+@@ -652,7 +652,11 @@
+ 	u8 *payload;
+ 	int offset = 0, remaining;
+ 	struct ethhdr eth;
++#if LINUX_VERSION_IS_LESS(3,5,0)
++	bool reuse_frag = 0;
++#else
+ 	bool reuse_frag = skb->head_frag && !skb_has_frag_list(skb);
++#endif
+ 	bool reuse_skb = false;
+ 	bool last = false;
+ 
+diff -ruN linux-5.3.6/net/wireless/wext-compat.h linux-5.3.6-wireless/net/wireless/wext-compat.h
+--- linux-5.3.6/net/wireless/wext-compat.h	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/wext-compat.h	2023-10-15 22:29:12.576000000 +0300
+@@ -5,11 +5,11 @@
+ #include <net/iw_handler.h>
+ #include <linux/wireless.h>
+ 
+-#ifdef CONFIG_CFG80211_WEXT_EXPORT
++#ifdef CPTCFG_CFG80211_WEXT_EXPORT
+ #define EXPORT_WEXT_HANDLER(h) EXPORT_SYMBOL_GPL(h)
+ #else
+ #define EXPORT_WEXT_HANDLER(h)
+-#endif /* CONFIG_CFG80211_WEXT_EXPORT */
++#endif /* CPTCFG_CFG80211_WEXT_EXPORT */
+ 
+ int cfg80211_ibss_wext_siwfreq(struct net_device *dev,
+ 			       struct iw_request_info *info,
+diff -ruN linux-5.3.6/net/wireless/wext-core.c linux-5.3.6-wireless/net/wireless/wext-core.c
+--- linux-5.3.6/net/wireless/wext-core.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/wext-core.c	2023-10-15 22:29:12.584000000 +0300
+@@ -645,7 +645,7 @@
+ 		return dev->wireless_handlers->get_wireless_stats(dev);
+ #endif
+ 
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	if (dev->ieee80211_ptr &&
+ 	    dev->ieee80211_ptr->wiphy &&
+ 	    dev->ieee80211_ptr->wiphy->wext &&
+@@ -685,7 +685,7 @@
+ 	unsigned int	index;		/* *MUST* be unsigned */
+ 	const struct iw_handler_def *handlers = NULL;
+ 
+-#ifdef CONFIG_CFG80211_WEXT
++#ifdef CPTCFG_CFG80211_WEXT
+ 	if (dev->ieee80211_ptr && dev->ieee80211_ptr->wiphy)
+ 		handlers = dev->ieee80211_ptr->wiphy->wext;
+ #endif
+diff -ruN linux-5.3.6/net/wireless/wext-proc.c linux-5.3.6-wireless/net/wireless/wext-proc.c
+--- linux-5.3.6/net/wireless/wext-proc.c	2019-10-11 19:36:59.000000000 +0300
++++ linux-5.3.6-wireless/net/wireless/wext-proc.c	2023-10-15 22:29:12.592000000 +0300
+@@ -39,7 +39,7 @@
+ 		if (dev->wireless_handlers)
+ 			stats = &nullstats;
+ #endif
+-#ifdef CONFIG_CFG80211
++#ifdef CPTCFG_CFG80211
+ 		if (dev->ieee80211_ptr)
+ 			stats = &nullstats;
+ #endif
